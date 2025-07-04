@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AuthProvider } from './hooks/useAuth';
 import Header from './components/Layout/Header';
 import SearchBar from './components/SearchInterface/SearchBar';
 import BookGrid from './components/BookResults/BookGrid';
@@ -26,102 +27,104 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Section */}
-        <div className="mb-12">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              What book are you looking for?
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Describe your ideal book in natural language and let our AI find the perfect matches for you.
-            </p>
-          </div>
-          
-          <SearchBar 
-            onSearch={handleSearch} 
-            isLoading={isLoading}
-          />
-        </div>
-
-        {/* Results Section */}
-        <div className="mb-8">
-          {isLoading && (
-            <LoadingSpinner 
-              message="Our AI is analyzing thousands of books to find your perfect matches..."
+    <AuthProvider>
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Search Section */}
+          <div className="mb-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                What book are you looking for?
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Describe your ideal book in natural language and let our AI find the perfect matches for you.
+              </p>
+            </div>
+            
+            <SearchBar 
+              onSearch={handleSearch} 
+              isLoading={isLoading}
             />
-          )}
+          </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                    <span className="text-red-600 text-sm font-medium">!</span>
+          {/* Results Section */}
+          <div className="mb-8">
+            {isLoading && (
+              <LoadingSpinner 
+                message="Our AI is analyzing thousands of books to find your perfect matches..."
+              />
+            )}
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                      <span className="text-red-600 text-sm font-medium">!</span>
+                    </div>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Search Error</h3>
+                    <p className="text-sm text-red-700 mt-1">{error}</p>
                   </div>
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Search Error</h3>
-                  <p className="text-sm text-red-700 mt-1">{error}</p>
-                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {!isLoading && !error && hasSearched && results.length > 0 && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Found {totalResults} perfect matches
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Search completed in {processingTime} • Powered by AI semantic matching
-                  </p>
+            {!isLoading && !error && hasSearched && results.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Found {totalResults} perfect matches
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Search completed in {processingTime} • Powered by AI semantic matching
+                    </p>
+                  </div>
                 </div>
+                
+                <BookGrid 
+                  books={results} 
+                  onBookClick={handleBookClick}
+                />
               </div>
-              
-              <BookGrid 
-                books={results} 
-                onBookClick={handleBookClick}
+            )}
+
+            {!isLoading && !error && hasSearched && results.length === 0 && (
+              <EmptyState 
+                type="no-results" 
+                query={currentQuery}
+                onTryExample={handleTryExample}
               />
-            </div>
-          )}
+            )}
 
-          {!isLoading && !error && hasSearched && results.length === 0 && (
-            <EmptyState 
-              type="no-results" 
-              query={currentQuery}
-              onTryExample={handleTryExample}
-            />
-          )}
-
-          {!hasSearched && !isLoading && (
-            <EmptyState 
-              type="initial"
-              onTryExample={handleTryExample}
-            />
-          )}
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <p className="text-gray-600">
-              Powered by AI semantic search • Built with React, TypeScript, and Tailwind CSS
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              Book data provided by Google Books API • Recommendations generated by OpenAI
-            </p>
+            {!hasSearched && !isLoading && (
+              <EmptyState 
+                type="initial"
+                onTryExample={handleTryExample}
+              />
+            )}
           </div>
-        </div>
-      </footer>
-    </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-white border-t border-gray-200 mt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center">
+              <p className="text-gray-600">
+                Powered by AI semantic search • Built with React, TypeScript, and Tailwind CSS
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                Book data provided by Google Books API • Recommendations generated by OpenAI
+              </p>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </AuthProvider>
   );
 }
 

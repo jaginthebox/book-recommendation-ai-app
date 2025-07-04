@@ -24,12 +24,12 @@ const EmptyState: React.FC<EmptyStateProps> = ({ type, query, onTryExample }) =>
         </div>
         
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Discover Your Next Great Read
+          Find Books That Match Your Mood
         </h2>
         
         <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-          Use natural language to describe exactly what you're looking for. 
-          Our AI will understand your preferences and find books that match your taste perfectly.
+          Tell us how you're feeling or what you're looking for. 
+          Our AI understands your mood and finds books that perfectly match your current vibe.
         </p>
 
         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8 max-w-4xl mx-auto">
@@ -38,7 +38,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ type, query, onTryExample }) =>
             <h3 className="text-lg font-semibold text-gray-900">Try these examples:</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
             {examples.map((example, index) => (
               <button
                 key={index}
@@ -52,6 +52,12 @@ const EmptyState: React.FC<EmptyStateProps> = ({ type, query, onTryExample }) =>
                 </p>
               </button>
             ))}
+          </div>
+          
+          <div className="text-center">
+            <p className="text-sm text-indigo-600 font-medium">
+              💡 Or use the mood selector above to find books based on how you're feeling!
+            </p>
           </div>
         </div>
       </div>

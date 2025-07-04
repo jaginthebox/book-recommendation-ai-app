@@ -36,7 +36,7 @@ const Header: React.FC = () => {
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                      BookMind
+                      Readpop
                     </h1>
                     <p className="text-xs text-gray-500 font-medium">AI-Powered Discovery</p>
                   </div>

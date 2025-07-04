@@ -36,10 +36,10 @@ function App() {
           <div className="mb-12">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                What book are you looking for?
+                Discover your next great read
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Describe your ideal book in natural language and let our AI find the perfect matches for you.
+                Tell us what you're in the mood for, and our AI will find the perfect books to match your vibe.
               </p>
             </div>
             

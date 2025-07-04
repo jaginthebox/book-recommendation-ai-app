@@ -1,0 +1,420 @@
+{
+  "name": "Reco Book - Improved",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "book-search",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "69775385-0738-498c-8196-05e36a7447fa",
+      "name": "Webhook - Book Search",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        60
+      ],
+      "webhookId": "book-search-webhook"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/books/v1/volumes",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.body.query + ' inlanguage:en' }}"
+            },
+            {
+              "name": "key",
+              "value": "AIzaSyCug8Gt6-58GirF_nDtTlEvg2d5QB9WoSg"
+            },
+            {
+              "name": "maxResults",
+              "value": "40"
+            },
+            {
+              "name": "orderBy",
+              "value": "relevance"
+            },
+            {
+              "name": "printType",
+              "value": "books"
+            },
+            {
+              "name": "langRestrict",
+              "value": "en"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "4e6e77c0-2174-45c8-a723-a92cb4fe7cff",
+      "name": "Google Books API Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        0,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Enhanced book processing with better categorization and filtering\nconst items = $input.first().json.items || [];\nconst userQuery = $('Webhook - Book Search').first().json.body.query.toLowerCase();\n\n// Function to check if text appears to be English\nfunction isLikelyEnglish(text) {\n  if (!text) return true;\n  const englishWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those'];\n  const words = text.toLowerCase().replace(/[^a-z\\s]/g, '').split(/\\s+/).slice(0, 20);\n  const englishWordCount = words.filter(word => englishWords.includes(word)).length;\n  return englishWordCount >= Math.max(1, words.length * 0.15);\n}\n\n// Function to calculate relevance score based on query\nfunction calculateRelevanceScore(book, query) {\n  let score = 0;\n  const queryWords = query.toLowerCase().split(/\\s+/);\n  const title = (book.title || '').toLowerCase();\n  const description = (book.description || '').toLowerCase();\n  const categories = (book.categories || []).join(' ').toLowerCase();\n  const authors = (book.authors || []).join(' ').toLowerCase();\n  \n  // Title matches (highest weight)\n  queryWords.forEach(word => {\n    if (title.includes(word)) score += 10;\n    if (categories.includes(word)) score += 8;\n    if (description.includes(word)) score += 3;\n    if (authors.includes(word)) score += 5;\n  });\n  \n  // Bonus for having ratings (popular books)\n  if (book.rating && book.rating > 3.5) score += 2;\n  if (book.ratingCount && book.ratingCount > 100) score += 1;\n  \n  // Bonus for having description\n  if (book.description && book.description.length > 100) score += 1;\n  \n  // Penalty for very old books (unless explicitly searching for classics)\n  const publishYear = parseInt(book.publishedDate?.substring(0, 4)) || 0;\n  const currentYear = new Date().getFullYear();\n  if (publishYear > 0 && (currentYear - publishYear) > 50 && !query.includes('classic')) {\n    score -= 1;\n  }\n  \n  return score;\n}\n\nconst processedBooks = items\n  .filter((item) => {\n    const volumeInfo = item.volumeInfo || {};\n    \n    // Filter 1: Check language field\n    const language = volumeInfo.language;\n    const isEnglishLang = !language || language === 'en' || language.startsWith('en');\n    \n    // Filter 2: Check if title appears to be English\n    const title = volumeInfo.title || '';\n    const isEnglishTitle = isLikelyEnglish(title);\n    \n    // Filter 3: Check if description appears to be English\n    const description = volumeInfo.description || '';\n    const isEnglishDesc = isLikelyEnglish(description.substring(0, 200));\n    \n    // Filter 4: Check for non-Latin characters (basic check)\n    const hasNonLatinChars = /[^\\x00-\\x7F]/.test(title.substring(0, 50));\n    \n    // Filter 5: Exclude textbooks, academic papers, and low-quality content\n    const isTextbook = /textbook|manual|handbook|guide|reference|academic|study|course|edition \\d+/i.test(title);\n    const isLowQuality = title.length < 3 || !description || description.length < 50;\n    \n    return isEnglishLang && isEnglishTitle && isEnglishDesc && !hasNonLatinChars && !isTextbook && !isLowQuality;\n  })\n  .map((item, index) => {\n    const volumeInfo = item.volumeInfo || {};\n    const imageLinks = volumeInfo.imageLinks || {};\n    \n    const book = {\n      id: item.id || `book-${index}`,\n      title: volumeInfo.title || 'Unknown Title',\n      authors: volumeInfo.authors || ['Unknown Author'],\n      description: volumeInfo.description || 'No description available',\n      coverImage: imageLinks.thumbnail || imageLinks.smallThumbnail || 'https://via.placeholder.com/128x192?text=No+Cover',\n      publishedDate: volumeInfo.publishedDate || 'Unknown',\n      pageCount: volumeInfo.pageCount,\n      categories: volumeInfo.categories || [],\n      rating: volumeInfo.averageRating,\n      ratingCount: volumeInfo.ratingsCount,\n      googleBooksUrl: volumeInfo.infoLink || `https://books.google.com/books?id=${item.id}`,\n      isbn: volumeInfo.industryIdentifiers?.[0]?.identifier,\n      language: volumeInfo.language || 'en',\n      publisher: volumeInfo.publisher,\n      // Calculate relevance score\n      relevanceScore: 0\n    };\n    \n    // Calculate relevance score\n    book.relevanceScore = calculateRelevanceScore(book, userQuery);\n    \n    // Create enhanced embedding text with categories and metadata\n    const categoryText = book.categories.length > 0 ? ' Categories: ' + book.categories.join(', ') : '';\n    const authorText = book.authors.length > 0 ? ' Authors: ' + book.authors.join(', ') : '';\n    \n    book.embeddingText = `${book.title}${authorText}${categoryText} ${book.description}`.substring(0, 8000);\n    \n    return book;\n  })\n  // Sort by relevance score first, then by rating\n  .sort((a, b) => {\n    if (b.relevanceScore !== a.relevanceScore) {\n      return b.relevanceScore - a.relevanceScore;\n    }\n    return (b.rating || 0) - (a.rating || 0);\n  })\n  // Take top 25 most relevant books for embedding\n  .slice(0, 25);\n\nconsole.log(`Filtered and sorted ${processedBooks.length} relevant English books from ${items.length} total results`);\nconsole.log('Top 3 books by relevance:', processedBooks.slice(0, 3).map(b => ({ title: b.title, score: b.relevanceScore, categories: b.categories })));\n\nreturn processedBooks.map(book => ({ json: book }));"
+      },
+      "id": "7e4cf5cc-35f9-4d35-8265-bf5f8c5eae03",
+      "name": "Process Books Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "={{ $json.embeddingText }}"
+            },
+            {
+              "name": "model",
+              "value": "text-embedding-3-small"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "c2ab39f2-f2c6-44e5-9057-3ca786ecb568",
+      "name": "Generate Book Embeddings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        460,
+        260
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "FYs8bDW2IKPsCDlV",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "={{ 'Books about ' + $('Webhook - Book Search').first().json.body.query + ' fiction fantasy adventure mystery romance science fiction literature novels stories' }}"
+            },
+            {
+              "name": "model",
+              "value": "text-embedding-3-small"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "f43deaf0-a671-44a2-a337-c3f7a1825221",
+      "name": "Generate Query Embedding",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        460,
+        -100
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "FYs8bDW2IKPsCDlV",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "joinMode": "waitForAll",
+        "outputDataFrom": "all"
+      },
+      "id": "fb26315b-4cd0-435c-9c94-ddbc853fa592",
+      "name": "Merge Embeddings",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        780,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Enhanced similarity calculation with multiple ranking factors\nconst allData = $input.all();\nconsole.log('Total merged items:', allData.length);\n\nif (allData.length < 2) {\n  throw new Error('Not enough embedding data received');\n}\n\n// Sort by input length to identify query vs book embeddings\nconst sortedData = allData.sort((a, b) => {\n  const aLength = a.json?.input?.length || 0;\n  const bLength = b.json?.input?.length || 0;\n  return aLength - bLength;\n});\n\n// First item (shortest) should be query embedding\nconst queryEmbedding = sortedData[0].json.data[0].embedding;\nconst bookEmbeddings = sortedData.slice(1);\n\nconsole.log('Query embedding length:', queryEmbedding.length);\nconsole.log('Book embeddings count:', bookEmbeddings.length);\n\n// Get processed books data\nconst processedBooks = $('Process Books Data').all();\n\n// Enhanced cosine similarity function\nfunction cosineSimilarity(a, b) {\n  let dotProduct = 0, normA = 0, normB = 0;\n  for (let i = 0; i < a.length; i++) {\n    dotProduct += a[i] * b[i];\n    normA += a[i] * a[i];\n    normB += b[i] * b[i];\n  }\n  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));\n}\n\n// Calculate combined scores\nconst results = bookEmbeddings.map((embeddingItem, index) => {\n  const bookEmbedding = embeddingItem.json.data[0].embedding;\n  const similarity = cosineSimilarity(queryEmbedding, bookEmbedding);\n  \n  const processedBook = processedBooks[index];\n  if (!processedBook || !processedBook.json) {\n    return {\n      similarityScore: similarity,\n      error: `No processed book data for index ${index}`\n    };\n  }\n  \n  const book = processedBook.json;\n  \n  // Calculate final score combining semantic similarity and relevance\n  const semanticScore = similarity;\n  const relevanceScore = (book.relevanceScore || 0) / 20; // Normalize to 0-1 range\n  const ratingScore = (book.rating || 0) / 5; // Normalize to 0-1 range\n  const popularityScore = Math.min((book.ratingCount || 0) / 1000, 1); // Normalize to 0-1 range\n  \n  // Weighted final score\n  const finalScore = (\n    semanticScore * 0.4 +           // 40% semantic similarity\n    relevanceScore * 0.3 +          // 30% keyword relevance\n    ratingScore * 0.2 +             // 20% book rating\n    popularityScore * 0.1           // 10% popularity\n  );\n  \n  return {\n    ...book,\n    similarityScore: similarity,\n    finalScore: finalScore,\n    semanticScore: semanticScore,\n    relevanceScore: book.relevanceScore || 0\n  };\n});\n\n// Sort by final score and return top 15\nconst topBooks = results\n  .filter(book => !book.error)\n  .sort((a, b) => b.finalScore - a.finalScore)\n  .slice(0, 15);\n\nconsole.log('Top 3 final results:', topBooks.slice(0, 3).map(b => ({ \n  title: b.title, \n  finalScore: b.finalScore?.toFixed(3), \n  similarity: b.similarityScore?.toFixed(3),\n  relevance: b.relevanceScore \n})));\n\nreturn topBooks.map(book => ({ json: book }));"
+      },
+      "id": "e5e5fb20-0857-4635-9f4b-c448e342becb",
+      "name": "Calculate Similarity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-3.5-turbo"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [{\"role\": \"system\", \"content\": \"You are an expert book curator and recommendation specialist. Generate a compelling, personalized recommendation (2-3 sentences) explaining why this book perfectly matches the user's query. Focus on the book's unique qualities, themes, and appeal. Be enthusiastic but informative.\"}, {\"role\": \"user\", \"content\": \"User Query: \" + $('Webhook - Book Search').first().json.body.query + \"\\n\\nBook: \" + $json.title + \" by \" + ($json.authors ? $json.authors.join(', ') : 'Unknown Author') + \"\\nCategories: \" + ($json.categories ? $json.categories.join(', ') : 'General Fiction') + \"\\nDescription: \" + ($json.description ? $json.description.substring(0, 400) : 'No description available') + \"\\nRating: \" + ($json.rating ? $json.rating + '/5' : 'Not rated') + \" (\" + ($json.ratingCount ? $json.ratingCount + ' reviews' : 'No reviews') + \")\\nMatch Score: \" + ($json.finalScore ? ($json.finalScore * 100).toFixed(1) : 'N/A') + \"%\\n\\nWhy is this book an excellent match for someone looking for '\" + $('Webhook - Book Search').first().json.body.query + \"'?\"}] }}"
+            },
+            {
+              "name": "temperature",
+              "value": "={{ 0.8 }}"
+            },
+            {
+              "name": "max_tokens",
+              "value": "={{ 150 }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ee5f9d54-71ee-409b-9bd7-e055303613fc",
+      "name": "Generate AI Recommendations",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1380,
+        100
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "FYs8bDW2IKPsCDlV",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Enhanced final response with better metadata\nconst books = $('Calculate Similarity').all();\nconst recommendations = $('Generate AI Recommendations').all();\nconst originalQuery = $('Webhook - Book Search').first().json.body.query;\n\nconst finalResults = books.map((book, index) => {\n  const recommendation = recommendations[index]?.json?.choices?.[0]?.message?.content || 'An excellent choice that matches your interests!';\n  \n  return {\n    id: book.json.id,\n    title: book.json.title,\n    authors: book.json.authors,\n    description: book.json.description,\n    coverImage: book.json.coverImage,\n    publishedDate: book.json.publishedDate,\n    pageCount: book.json.pageCount,\n    categories: book.json.categories,\n    rating: book.json.rating,\n    ratingCount: book.json.ratingCount,\n    googleBooksUrl: book.json.googleBooksUrl,\n    isbn: book.json.isbn,\n    publisher: book.json.publisher,\n    recommendation: recommendation.trim(),\n    matchScore: Math.round((book.json.finalScore || 0) * 100),\n    semanticSimilarity: Math.round((book.json.semanticScore || 0) * 100),\n    relevanceScore: book.json.relevanceScore || 0\n  };\n});\n\n// Prepare enhanced response with search metadata\nconst response = {\n  success: true,\n  query: originalQuery,\n  totalResults: finalResults.length,\n  searchMetadata: {\n    language: 'en',\n    sortedBy: 'relevance_and_similarity',\n    filters: ['english_only', 'quality_filter', 'relevance_scoring']\n  },\n  results: finalResults,\n  tips: {\n    message: \"Results are ranked by a combination of semantic similarity, keyword relevance, and book quality.\",\n    searchSuggestions: [\n      \"Try more specific terms like 'epic fantasy' or 'urban fantasy'\",\n      \"Include author names or series for more targeted results\",\n      \"Add keywords like 'bestseller' or 'award-winning' for popular books\"\n    ]\n  }\n};\n\nreturn [{ json: response }];"
+      },
+      "id": "2267decd-e669-4980-9e29-6628136a33ef",
+      "name": "Prepare Final Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1660,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "ac9bd5fa-0490-4ec6-a9b5-8e5ba712e700",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        100
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Book Search": {
+      "main": [
+        [
+          {
+            "node": "Google Books API Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Books API Search": {
+      "main": [
+        [
+          {
+            "node": "Process Books Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Books Data": {
+      "main": [
+        [
+          {
+          "node": "Generate Book Embeddings",
+          "type": "main",
+          "index": 0
+        },
+        {
+          "node": "Generate Query Embedding",
+          "type": "main",
+          "index": 0
+        }
+        ]
+      ]
+    },
+    "Generate Book Embeddings": {
+      "main": [
+        [
+          {
+            "node": "Merge Embeddings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Query Embedding": {
+      "main": [
+        [
+          {
+            "node": "Merge Embeddings",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Embeddings": {
+      "main": [
+        [
+          {
+            "node": "Calculate Similarity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Similarity": {
+      "main": [
+        [
+          {
+            "node": "Generate AI Recommendations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Recommendations": {
+      "main": [
+        [
+          {
+            "node": "Prepare Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Final Response": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "26fa6b7c-55df-4df5-9f2d-077b0018289d",
+  "meta": {
+    "instanceId": "aec3ef2ea382130b2ca66665a38e309d3dfe79076be18231f9cf35dcb5503064"
+  },
+  "id": "o9DVu9OTNVV0pfYV",
+  "tags": []
+}

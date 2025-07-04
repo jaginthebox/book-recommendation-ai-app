@@ -7,8 +7,10 @@ class BookSearchService {
     try {
       // Add timestamp for processing time calculation
       const requestWithTimestamp = {
-        ...request,
-        timestamp: Date.now()
+        body: {
+          query: request.query,
+          timestamp: Date.now()
+        }
       };
 
       const response = await fetch(this.baseUrl, {
@@ -33,7 +35,21 @@ class BookSearchService {
       }
       
       try {
-        return JSON.parse(text);
+        const data = JSON.parse(text);
+        
+        // Transform n8n response to match expected structure
+        if (data.success && data.results) {
+          return {
+            results: data.results,
+            totalResults: data.totalResults || data.results.length,
+            processingTime: data.processingTime || 'N/A',
+            query: data.query || request.query
+          };
+        }
+        
+        // If response doesn't match expected structure, fall back to mock
+        console.warn('Unexpected response structure from n8n:', data);
+        return this.simulateSearch(request);
       } catch (jsonError) {
         console.warn('Invalid JSON response, using mock data:', jsonError);
         return this.simulateSearch(request);

@@ -5,38 +5,30 @@ class BookSearchService {
 
   async searchBooks(request: BookSearchRequest): Promise<BookSearchResponse> {
     try {
-      // Match the exact structure expected by your n8n workflow
-      const requestBody = {
+      // Add timestamp for processing time calculation
+      const requestWithTimestamp = {
         body: {
-          query: request.query
+          query: request.query,
+          timestamp: Date.now()
         }
       };
-
-      console.log('Sending request to n8n:', this.baseUrl);
-      console.log('Request body:', JSON.stringify(requestBody, null, 2));
 
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestWithTimestamp)
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
       if (!response.ok) {
-        console.error(`n8n request failed with status ${response.status}`);
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
+        // Fallback to mock data if n8n is not available
+        console.warn(`n8n not available (${response.status}), using mock data`);
         return this.simulateSearch(request);
       }
 
       // Check if response has content before parsing JSON
       const text = await response.text();
-      console.log('Raw response text:', text);
-      
       if (!text || text.trim() === '') {
         console.warn('Empty response from API, using mock data');
         return this.simulateSearch(request);
@@ -44,7 +36,6 @@ class BookSearchService {
       
       try {
         const data = JSON.parse(text);
-        console.log('Parsed response data:', data);
         
         // Transform n8n response to match expected structure
         if (data.success && data.results) {
@@ -57,12 +48,6 @@ class BookSearchService {
         }
         
         // If response doesn't match expected structure, fall back to mock
-        console.warn('Response structure check failed:');
-        console.warn('- Has success property:', 'success' in data);
-        console.warn('- Has results property:', 'results' in data);
-        console.warn('- Success value:', data.success);
-        console.warn('- Results length:', data.results?.length);
-        
         console.warn('Unexpected response structure from n8n:', data);
         return this.simulateSearch(request);
       } catch (jsonError) {

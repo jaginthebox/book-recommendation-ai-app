@@ -7,10 +7,8 @@ class BookSearchService {
     try {
       // Add timestamp for processing time calculation
       const requestWithTimestamp = {
-        body: {
-          query: request.query,
-          timestamp: Date.now()
-        }
+        query: request.query,
+        timestamp: Date.now()
       };
 
       const response = await fetch(this.baseUrl, {

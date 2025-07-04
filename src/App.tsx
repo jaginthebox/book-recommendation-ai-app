@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AuthProvider } from './hooks/useAuth';
+import { AuthProvider } from './hooks/useAuth.tsx';
 import Header from './components/Layout/Header';
 import SearchBar from './components/SearchInterface/SearchBar';
 import BookGrid from './components/BookResults/BookGrid';

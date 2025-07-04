@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BookOpen, Sparkles, User, LogOut, Menu, X } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth.tsx';
 import AuthModal from '../Auth/AuthModal';
 
 const Header: React.FC = () => {

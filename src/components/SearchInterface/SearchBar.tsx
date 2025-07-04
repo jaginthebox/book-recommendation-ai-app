@@ -17,6 +17,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim() && !isLoading) {
+      console.log('Searching for:', query.trim());
       onSearch(query.trim());
     }
   };

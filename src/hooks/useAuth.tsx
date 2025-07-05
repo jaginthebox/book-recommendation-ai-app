@@ -64,7 +64,7 @@ class AuthService {
 
     // Create new user
     const newUser = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       email,
       password,
       name

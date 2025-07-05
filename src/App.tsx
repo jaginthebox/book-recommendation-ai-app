@@ -192,6 +192,11 @@ function App() {
             />
           </div>
 
+          {/* Book Carousel Section - Below Search */}
+          <div className="mb-12">
+            <BookCarousel />
+          </div>
+
           {/* Results Section */}
           <div className="mb-8">
             {isLoading && (
@@ -252,13 +257,6 @@ function App() {
             )}
           </div>
         </main>
-        )}
-
-        {/* Book Carousel Section - Only show on home page */}
-        {currentPage === 'home' && (
-          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <BookCarousel />
-          </section>
         )}
 
         {/* Footer */}

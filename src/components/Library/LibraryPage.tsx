@@ -319,7 +319,7 @@ const LibraryPage: React.FC = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Avg Rating</p>
                 <p className="text-3xl font-bold text-gray-900">
-                  {libraryStats.averageRating > 0 ? libraryStats.averageRating.toFixed(1) : '—'}
+                <div className="text-xs text-white text-opacity-80">2025 Goal</div>
                 </p>
                 {libraryStats.averageRating > 0 && (
                   <div className="flex items-center">
@@ -382,8 +382,8 @@ const LibraryPage: React.FC = () => {
 
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <Flame className="w-5 h-5 mr-2 text-orange-600" />
-              Reading Streak
+              <Trophy className="w-5 h-5 mr-2 text-yellow-600" />
+              2025 Reading Goal
             </h3>
             <div className="flex items-center space-x-4">
               <div className="text-center">

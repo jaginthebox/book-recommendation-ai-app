@@ -433,7 +433,7 @@ function AppContent() {
                       Found {totalResults} perfect matches
                     </h3>
                     <p className="text-gray-700 mt-2">
-                      Search completed in {processingTime} • Powered by AI semantic matching
+                      Search completed • Powered by AI semantic matching
                     </p>
                   </div>
                 </div>

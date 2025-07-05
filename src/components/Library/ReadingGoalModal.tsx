@@ -193,7 +193,7 @@ const ReadingGoalModal: React.FC<ReadingGoalModalProps> = ({ currentGoal, onClos
         {/* Footer */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Goal for {currentYear}
+            Goal for 2025
           </div>
           <div className="flex items-center space-x-3">
             <button

@@ -56,12 +56,23 @@ export interface BookCollection {
   updated_at: string;
 }
 
+export interface ReadingSession {
+  id: string;
+  user_id: string;
+  book_id: string;
+  pages_read: number;
+  session_duration: number;
+  session_date: string;
+  notes?: string;
+}
+
 export const useLibrary = () => {
   const { user } = useAuth();
   const [savedBooks, setSavedBooks] = useState<SavedBook[]>([]);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [readingGoals, setReadingGoals] = useState<ReadingGoal[]>([]);
   const [collections, setCollections] = useState<BookCollection[]>([]);
+  const [readingSessions, setReadingSessions] = useState<ReadingSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,6 +86,7 @@ export const useLibrary = () => {
       setWishlistItems([]);
       setReadingGoals([]);
       setCollections([]);
+      setReadingSessions([]);
     }
   }, [user]);
 
@@ -121,10 +133,20 @@ export const useLibrary = () => {
 
       if (collectionsError) throw collectionsError;
 
+      // Load reading sessions
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from('reading_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('session_date', { ascending: false });
+
+      if (sessionsError) throw sessionsError;
+
       setSavedBooks(savedBooksData || []);
       setWishlistItems(wishlistData || []);
       setReadingGoals(goalsData || []);
       setCollections(collectionsData || []);
+      setReadingSessions(sessionsData || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load library data');
     } finally {
@@ -379,6 +401,8 @@ export const useLibrary = () => {
     const currentlyReading = savedBooks.filter(book => book.status === 'currently_reading').length;
     const wantToRead = savedBooks.filter(book => book.status === 'want_to_read').length;
     const wishlistCount = wishlistItems.length;
+    const currentYear = new Date().getFullYear();
+    const currentYearGoal = readingGoals.find(goal => goal.year === currentYear);
 
     return {
       totalBooks,
@@ -386,6 +410,8 @@ export const useLibrary = () => {
       currentlyReading,
       wantToRead,
       wishlistCount
+      readingSessions,
+      readingGoal: currentYearGoal
     };
   };
 
@@ -395,6 +421,7 @@ export const useLibrary = () => {
     wishlistItems,
     readingGoals,
     collections,
+    readingSessions,
     isLoading,
     error,
 

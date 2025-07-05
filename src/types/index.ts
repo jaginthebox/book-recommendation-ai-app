@@ -13,6 +13,7 @@ export interface Book {
   recommendation?: string;
   googleBooksUrl: string;
   isbn?: string;
+  matchScore?: number;
 }
 
 export interface SearchFilters {

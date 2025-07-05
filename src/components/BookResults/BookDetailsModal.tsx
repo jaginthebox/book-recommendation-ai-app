@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Book } from '../../types';
 import { useLibrary } from '../../hooks/useLibrary';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth.tsx';
 
 interface BookDetailsModalProps {
   book: Book;

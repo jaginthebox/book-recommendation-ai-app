@@ -28,7 +28,7 @@ import {
   Calendar as CalendarIcon,
   ArrowRight
 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth.tsx';
 import { useLibrary } from '../../hooks/useLibrary';
 import { SavedBook } from '../../lib/supabase';
 import NotesModal from './NotesModal';

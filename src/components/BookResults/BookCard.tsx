@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Star, Calendar, BookOpen, ExternalLink, Sparkles, Heart, Plus, Bookmark } from 'lucide-react';
 import { Book } from '../../types';
 import { useLibrary } from '../../hooks/useLibrary';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth.tsx';
 import BookDetailsModal from './BookDetailsModal';
 
 interface BookCardProps {

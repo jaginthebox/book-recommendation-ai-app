@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DatabaseService, SearchHistory } from '../lib/supabase';
-import { useAuth } from './useAuth';
+import { useAuth } from './useAuth.tsx';
 import { Book } from '../types';
 
 export const useSearchHistory = () => {

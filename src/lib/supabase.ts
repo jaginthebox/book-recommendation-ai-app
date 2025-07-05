@@ -882,5 +882,3 @@ export class DatabaseService {
       };
     }
   }
-}
-        this.getUserSavedBooks(userId)

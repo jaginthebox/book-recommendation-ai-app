@@ -75,6 +75,9 @@ export const useAuthProvider = () => {
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Invalid login credentials');
         }
+        if (error.message.includes('Email not confirmed')) {
+          throw new Error('Please check your email and click the confirmation link before signing in');
+        }
         throw error;
       }
 
@@ -101,7 +104,6 @@ export const useAuthProvider = () => {
             name: name,
             full_name: name,
           },
-          emailRedirectTo: undefined, // Disable email confirmation for development
         },
       });
 
@@ -110,16 +112,22 @@ export const useAuthProvider = () => {
         if (error.message.includes('User already registered')) {
           throw new Error('User already registered');
         }
+        if (error.message.includes('Email not confirmed')) {
+          throw new Error('Please check your email and click the confirmation link to complete registration');
+        }
         throw error;
       }
 
-      if (data.user) {
-        // For development, we'll consider the user immediately confirmed
+      if (data.user && data.session) {
+        // User is immediately signed in (email confirmation disabled)
         setUser({
           id: data.user.id,
           email: data.user.email || '',
           name: name
         });
+      } else if (data.user && !data.session) {
+        // User created but needs email confirmation
+        throw new Error('Registration successful! Please check your email and click the confirmation link to complete your account setup');
       }
     } finally {
       setIsLoading(false);

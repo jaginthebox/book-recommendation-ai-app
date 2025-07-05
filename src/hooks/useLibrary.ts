@@ -380,6 +380,8 @@ const RecommendationsPage: React.FC = () => {
               </p>
               <button 
                 onClick={() => window.location.hash = ''}
+          )
+          }
         </div>
 
         {/* Quick Discovery Tools */}

@@ -9,7 +9,7 @@ interface SavedBook extends BookType {
   savedAt: string;
   isRead: boolean;
   readAt?: string;
-  rating?: number;
+  userRating?: number;
   notes?: string;
   tags?: string[];
 }
@@ -42,7 +42,7 @@ const LibraryPage: React.FC = () => {
         savedAt: '2024-01-15',
         isRead: true,
         readAt: '2024-01-20',
-        rating: 5,
+        userRating: 5,
         notes: 'Absolutely incredible world-building. The magic system is fascinating and the characters are so well developed. Can\'t wait to read the next book in the series!',
         tags: ['sci-fi', 'fantasy', 'award-winner']
       },
@@ -79,7 +79,7 @@ const LibraryPage: React.FC = () => {
         savedAt: '2024-01-05',
         isRead: true,
         readAt: '2024-01-12',
-        rating: 4,
+        userRating: 4,
         notes: 'Thought-provoking exploration of power dynamics. The premise is fascinating and the execution is mostly solid, though it gets a bit heavy-handed at times.',
         tags: ['dystopian', 'feminism', 'power']
       },
@@ -141,9 +141,9 @@ const LibraryPage: React.FC = () => {
     setShowNotesModal(true);
   };
 
-  const saveNotes = (bookId: string, notes: string, rating?: number) => {
+  const saveNotes = (bookId: string, notes: string, userRating?: number) => {
     setSavedBooks(books => books.map(book => 
-      book.id === bookId ? { ...book, notes, rating } : book
+      book.id === bookId ? { ...book, notes, userRating } : book
     ));
   };
 
@@ -213,8 +213,8 @@ const LibraryPage: React.FC = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Avg Rating</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {savedBooks.filter(b => b.rating).length > 0 
-                    ? (savedBooks.filter(b => b.rating).reduce((acc, b) => acc + (b.rating || 0), 0) / savedBooks.filter(b => b.rating).length).toFixed(1)
+                  {savedBooks.filter(b => b.userRating).length > 0 
+                    ? (savedBooks.filter(b => b.userRating).reduce((acc, b) => acc + (b.userRating || 0), 0) / savedBooks.filter(b => b.userRating).length).toFixed(1)
                     : '—'
                   }
                 </p>
@@ -351,10 +351,10 @@ const LibraryPage: React.FC = () => {
                         <span>Saved {new Date(book.savedAt).toLocaleDateString()}</span>
                       </div>
                       
-                      {book.rating && (
+                      {book.userRating && (
                         <div className="flex items-center space-x-1">
                           <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          <span>{book.rating}/5</span>
+                          <span>{book.userRating}/5</span>
                         </div>
                       )}
                     </div>

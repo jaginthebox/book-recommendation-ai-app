@@ -8,19 +8,19 @@ interface Book {
   coverImage: string;
   publishedDate: string;
   notes?: string;
-  rating?: number;
+  userRating?: number;
   readAt?: string;
 }
 
 interface NotesModalProps {
   book: Book;
   onClose: () => void;
-  onSave: (bookId: string, notes: string, rating?: number) => void;
+  onSave: (bookId: string, notes: string, userRating?: number) => void;
 }
 
 const NotesModal: React.FC<NotesModalProps> = ({ book, onClose, onSave }) => {
   const [notes, setNotes] = useState(book.notes || '');
-  const [rating, setRating] = useState(book.rating || 0);
+  const [rating, setRating] = useState(book.userRating || 0);
   const [hoveredRating, setHoveredRating] = useState(0);
 
   const handleSave = () => {

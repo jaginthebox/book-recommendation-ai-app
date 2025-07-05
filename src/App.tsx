@@ -1,8 +1,8 @@
 import React from 'react';
-import { AuroraBookLanding } from './components/AuroraBookLanding';
+import { ModernBookLanding } from './components/ModernBookLanding';
 
 function App() {
-  return <AuroraBookLanding />;
+  return <ModernBookLanding />;
 }
 
 export default App;

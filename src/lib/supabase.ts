@@ -337,6 +337,18 @@ export class DatabaseService {
       
       let results = data || [];
 
+      if (filters?.search) {
+        const searchTerm = filters.search.toLowerCase();
+        results = results.filter(book => 
+          book.book_data.title.toLowerCase().includes(searchTerm) ||
+          book.book_data.authors.some(author => 
+            author.toLowerCase().includes(searchTerm)
+          ) ||
+          book.book_data.description.toLowerCase().includes(searchTerm) ||
+          book.notes?.toLowerCase().includes(searchTerm)
+        );
+      }
+
       return results;
     } catch (error) {
       console.error('Error fetching saved books:', error);
@@ -357,7 +369,7 @@ export class DatabaseService {
         .eq('book_id', bookId)
         .select()
         .single();
-      // Apply search filter (client-side for complex text search)
+
       if (error) throw error;
       return data;
     } catch (error) {
@@ -373,7 +385,7 @@ export class DatabaseService {
         .delete()
         .eq('user_id', userId)
         .eq('book_id', bookId);
-      if (filters?.search) {
+
       if (error) throw error;
       return true;
     } catch (error) {
@@ -390,7 +402,7 @@ export class DatabaseService {
         .eq('user_id', userId)
         .eq('book_id', bookId)
         .limit(1);
-        const searchTerm = filters.search.toLowerCase();
+
       if (error) throw error;
       return (data && data.length > 0);
     } catch (error) {
@@ -419,7 +431,7 @@ export class DatabaseService {
         })
         .select()
         .single();
-        results = results.filter(book => 
+
       if (error) throw error;
       return data;
     } catch (error) {
@@ -440,13 +452,13 @@ export class DatabaseService {
         .eq('user_id', userId)
         .order('session_date', { ascending: false })
         .limit(limit);
-          book.book_data.title.toLowerCase().includes(searchTerm) ||
+
       if (bookId) {
         query = query.eq('book_id', bookId);
       }
-          book.book_data.authors.some(author => 
+
       const { data, error } = await query;
-            author.toLowerCase().includes(searchTerm)
+
       if (error) throw error;
       return data || [];
     } catch (error) {
@@ -462,9 +474,9 @@ export class DatabaseService {
         .from('saved_books')
         .select('*')
         .eq('user_id', userId);
-          ) ||
+
       if (error) throw error;
-          book.book_data.description.toLowerCase().includes(searchTerm) ||
+
       const books = savedBooks || [];
       const readBooks = books.filter(book => book.is_read);
       const booksWithNotes = books.filter(book => book.notes);
@@ -473,7 +485,7 @@ export class DatabaseService {
       const averageRating = booksWithRatings.length > 0
         ? booksWithRatings.reduce((sum, book) => sum + (book.user_rating || 0), 0) / booksWithRatings.length
         : 0;
-          book.notes?.toLowerCase().includes(searchTerm)
+
       // Get genre distribution
       const genreCount: { [key: string]: number } = {};
       books.forEach(book => {
@@ -481,12 +493,12 @@ export class DatabaseService {
           genreCount[genre] = (genreCount[genre] || 0) + 1;
         });
       });
-        );
+
       const topGenres = Object.entries(genreCount)
         .sort(([,a], [,b]) => b - a)
         .slice(0, 5)
         .map(([genre, count]) => ({ genre, count }));
-      }
+
       return {
         totalBooks: books.length,
         readBooks: readBooks.length,

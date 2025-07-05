@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AuthProvider } from './hooks/useAuth.tsx';
 import Header from './components/Layout/Header';
+import LibraryPage from './components/Library/LibraryPage';
 import SearchBar from './components/SearchInterface/SearchBar';
 import BookGrid from './components/BookResults/BookGrid';
 import LoadingSpinner from './components/Common/LoadingSpinner';
@@ -11,6 +12,7 @@ import { Book } from './types';
 function App() {
   const { isLoading, results, error, totalResults, processingTime, hasSearched, searchBooks } = useBookSearch();
   const [currentQuery, setCurrentQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState<'home' | 'library'>('home');
 
   const handleSearch = async (query: string) => {
     setCurrentQuery(query);
@@ -26,12 +28,35 @@ function App() {
     handleSearch(example);
   };
 
+  // Handle navigation
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === '#library') {
+        setCurrentPage('library');
+      } else {
+        setCurrentPage('home');
+      }
+    };
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    
+    // Check initial hash
+    handleHashChange();
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   return (
     <AuthProvider>
       <div className="min-h-screen bg-gray-50">
         <Header />
         
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {currentPage === 'library' ? (
+          <LibraryPage />
+        ) : (
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Search Section */}
           <div className="mb-12">
             <div className="text-center mb-8">
@@ -109,9 +134,11 @@ function App() {
             )}
           </div>
         </main>
+        )}
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 mt-16">
+        {currentPage === 'home' && (
+          <footer className="bg-white border-t border-gray-200 mt-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="text-center">
               <p className="text-gray-600">
@@ -123,6 +150,7 @@ function App() {
             </div>
           </div>
         </footer>
+        )}
       </div>
     </AuthProvider>
   );

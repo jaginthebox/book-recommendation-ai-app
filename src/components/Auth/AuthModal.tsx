@@ -55,10 +55,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
     try {
       if (mode === 'login') {
         await login(formData.email, formData.password);
+        onClose();
       } else {
         await register(formData.email, formData.password, formData.name);
+        // Show success message instead of closing modal
+        setErrors({ 
+          submit: 'Registration successful! Please check your email and click the confirmation link to activate your account.' 
+        });
+        // Clear form
+        setFormData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          name: ''
+        });
+        // Switch to login mode after a delay
+        setTimeout(() => {
+          onSwitchMode('login');
+          setErrors({});
+        }, 3000);
+        return; // Don't close modal yet
       }
-      onClose();
     } catch (error) {
       let errorMessage = 'An error occurred';
       
@@ -222,8 +239,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
             )}
 
             {errors.submit && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-700 text-sm">{errors.submit}</p>
+              <div className={`border rounded-lg p-3 ${
+                errors.submit.includes('Registration successful') 
+                  ? 'bg-green-50 border-green-200' 
+                  : 'bg-red-50 border-red-200'
+              }`}>
+                <p className={`text-sm ${
+                  errors.submit.includes('Registration successful')
+                    ? 'text-green-700'
+                    : 'text-red-700'
+                }`}>{errors.submit}</p>
               </div>
             )}
 

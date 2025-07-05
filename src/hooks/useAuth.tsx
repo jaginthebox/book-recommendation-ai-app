@@ -131,14 +131,11 @@ export const useAuthProvider = () => {
         email,
         password,
         options: {
-          emailRedirectTo: undefined, // Disable email confirmation
-          captchaToken: undefined,    // Skip captcha
+          emailRedirectTo: `${window.location.origin}`, // Enable email confirmation
           data: {
             name: name,
             full_name: name
           },
-          // This tells Supabase to skip email confirmation
-          skipConfirmation: true
         },
       });
 
@@ -153,13 +150,11 @@ export const useAuthProvider = () => {
         throw error;
       }
 
-      if (data.user) {
-        // User is created and immediately signed in (no email confirmation needed)
-        setUser({
-          id: data.user.id,
-          email: data.user.email || '',
-          name: name
-        });
+      // User is created but not automatically signed in
+      // They need to confirm their email first
+      if (data.user && !data.session) {
+        // Registration successful, but user needs to confirm email
+        console.log('Registration successful. Please check your email for confirmation.');
       }
     } finally {
       setIsLoading(false);

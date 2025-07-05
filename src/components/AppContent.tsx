@@ -9,10 +9,12 @@ import RecommendationsPage from './Recommendations/RecommendationsPage';
 import BookCarousel from './Common/BookCarousel';
 import { useBookSearch } from '../hooks/useBookSearch';
 import { Book } from '../types';
+import { useSearchHistory } from '../hooks/useSearchHistory';
 import { BookOpen, Sparkles, Search, Heart, Target, TrendingUp, Award, Users, Zap, Star, Clock, Globe, ChevronDown, ChevronUp } from 'lucide-react';
 
 function AppContent() {
   const { isLoading, results, error, totalResults, processingTime, hasSearched, searchBooks } = useBookSearch();
+  const { recordBookClick } = useSearchHistory();
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'recommendations' | 'about'>('home');
   const [showMoodSelector, setShowMoodSelector] = useState(false);
@@ -31,7 +33,8 @@ function AppContent() {
     setShowMoodSelector(false);
   };
   const handleBookClick = (book: Book) => {
-    // TODO: Implement book detail modal or navigation
+    // Record the book click for recommendations
+    recordBookClick(book);
     console.log('Book clicked:', book);
   };
 

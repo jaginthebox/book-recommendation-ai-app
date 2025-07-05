@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DatabaseService, SavedBook, WishlistItem, ReadingGoal } from '../lib/supabase';
-import { useAuth } from './useAuth';
+import { useAuth } from './useAuth.tsx';
 import { Book } from '../types';
 
 interface LibraryFilters {
@@ -276,13 +276,32 @@ export const useLibrary = () => {
 
   // Update reading progress
   const updateReadingProgress = useCallback(async (bookId: string, progress: number) => {
+    if (!user) return false;
+
+    // Add reading session when progress is updated
+    const book = savedBooks.find(b => b.book_id === bookId);
+    if (book) {
+      const previousProgress = book.reading_progress || 0;
+      const pagesRead = Math.round(((progress - previousProgress) / 100) * (book.book_data.pageCount || 0));
+      
+      if (pagesRead > 0) {
+        await DatabaseService.addReadingSession(
+          user.id,
+          bookId,
+          pagesRead,
+          30, // Assume 30 minutes session duration
+          `Progress updated from ${previousProgress}% to ${progress}%`
+        );
+      }
+    }
+
     const status = progress >= 100 ? 'read' : progress > 0 ? 'currently_reading' : 'want_to_read';
     return await updateBook(bookId, {
       reading_progress: Math.max(0, Math.min(100, progress)),
       is_read: progress >= 100,
       status
     });
-  }, [updateBook]);
+  }, [updateBook, user, savedBooks]);
 
   // Save notes and rating
   const saveNotesAndRating = useCallback(async (

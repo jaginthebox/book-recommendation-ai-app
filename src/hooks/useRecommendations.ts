@@ -3,6 +3,7 @@ import { DatabaseService, SavedBook } from '../lib/supabase';
 import { useAuth } from './useAuth.tsx';
 import { Book } from '../types';
 import { useLibrary } from './useLibrary';
+import { useSearchHistory } from './useSearchHistory';
 
 interface RecommendationData {
   recentQueries: string[];
@@ -16,6 +17,7 @@ interface RecommendationData {
 export const useRecommendations = () => {
   const { user } = useAuth();
   const { savedBooks } = useLibrary();
+  const { searchHistory } = useSearchHistory();
   const [recommendationData, setRecommendationData] = useState<RecommendationData>({
     recentQueries: [],
     clickedBooks: [],
@@ -29,8 +31,18 @@ export const useRecommendations = () => {
   useEffect(() => {
     if (user) {
       loadRecommendationData();
+    } else {
+      // Reset to empty state when user logs out
+      setRecommendationData({
+        recentQueries: [],
+        clickedBooks: [],
+        popularGenres: [],
+        preferences: null,
+        searchHistory: [],
+        savedBooks: []
+      });
     }
-  }, [user]);
+  }, [user, searchHistory]);
 
   // Update recommendation data when saved books change
   useEffect(() => {
@@ -46,9 +58,14 @@ export const useRecommendations = () => {
     setIsLoading(true);
     try {
       const data = await DatabaseService.getRecommendationData(user.id);
+      
+      // Get reading sessions for more detailed analysis
+      const readingSessions = await DatabaseService.getReadingSessions(user.id);
+      
       setRecommendationData(prev => ({
         ...data,
-        savedBooks: savedBooks || [] // Ensure savedBooks is always an array
+        savedBooks: savedBooks || [], // Ensure savedBooks is always an array
+        readingSessions: readingSessions || []
       }));
     } catch (error) {
       console.error('Error loading recommendation data:', error);
@@ -60,8 +77,12 @@ export const useRecommendations = () => {
   const generatePersonalizedRecommendations = (): Book[] => {
     const { clickedBooks, popularGenres, recentQueries, savedBooks = [] } = recommendationData;
     
-    // Enhanced recommendation algorithm using saved books data
+    // Enhanced recommendation algorithm using saved books and search history
     const recommendations: Book[] = [];
+    
+    // Get recent search patterns
+    const recentSearches = searchHistory.slice(0, 10);
+    const searchTerms = recentSearches.map(s => s.query.toLowerCase()).join(' ');
     
     // Get genres from saved books
     const savedGenres = savedBooks.flatMap(book => book.book_data.categories || []);
@@ -93,8 +114,21 @@ export const useRecommendations = () => {
       ? ratedBooks.reduce((sum, book) => sum + (book.user_rating || 0), 0) / ratedBooks.length
       : 4.0;
     
+    // Analyze clicked books from search history
+    const allClickedBooks = searchHistory.flatMap(search => search.clicked_books || []);
+    const clickedGenres = allClickedBooks.flatMap(book => book.categories || []);
+    const clickedGenreCount = clickedGenres.reduce((acc, genre) => {
+      acc[genre] = (acc[genre] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const topClickedGenres = Object.entries(clickedGenreCount)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([genre]) => genre);
+    
     // Generate recommendations based on saved library
-    if (topSavedGenres.includes('Science Fiction') || popularGenres.includes('Science Fiction') || recentQueries.some(q => q.toLowerCase().includes('science'))) {
+    if (topSavedGenres.includes('Science Fiction') || topClickedGenres.includes('Science Fiction') || searchTerms.includes('science')) {
       recommendations.push({
         id: 'rec-sf-1',
         title: 'The Left Hand of Darkness',
@@ -110,7 +144,7 @@ export const useRecommendations = () => {
       });
     }
 
-    if (topSavedGenres.includes('Fantasy') || popularGenres.includes('Fantasy') || recentQueries.some(q => q.toLowerCase().includes('fantasy'))) {
+    if (topSavedGenres.includes('Fantasy') || topClickedGenres.includes('Fantasy') || searchTerms.includes('fantasy')) {
       recommendations.push({
         id: 'rec-fantasy-1',
         title: 'The Goblin Emperor',
@@ -123,6 +157,39 @@ export const useRecommendations = () => {
         ratingCount: 45000,
         googleBooksUrl: 'https://books.google.com/books?id=example',
         recommendation: 'Your fantasy preferences suggest you\'ll enjoy this character-driven political fantasy.'
+      });
+    }
+
+    // Recommendations based on search patterns
+    if (searchTerms.includes('mystery') || searchTerms.includes('detective') || topClickedGenres.includes('Mystery')) {
+      recommendations.push({
+        id: 'rec-mystery-1',
+        title: 'The Thursday Murder Club',
+        authors: ['Richard Osman'],
+        description: 'Four unlikely friends meet weekly to investigate cold cases, but soon find themselves pursuing a killer.',
+        coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=450&fit=crop',
+        publishedDate: '2020',
+        categories: ['Mystery', 'Cozy Mystery'],
+        rating: 4.2,
+        ratingCount: 78000,
+        googleBooksUrl: 'https://books.google.com/books?id=example',
+        recommendation: `Based on your search history showing interest in mystery themes, this cozy mystery should be perfect.`
+      });
+    }
+
+    if (searchTerms.includes('romance') || topClickedGenres.includes('Romance')) {
+      recommendations.push({
+        id: 'rec-romance-1',
+        title: 'Beach Read',
+        authors: ['Emily Henry'],
+        description: 'Two rival writers end up next door to each other at the beach, challenging each other to write outside their comfort zones.',
+        coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=450&fit=crop',
+        publishedDate: '2020',
+        categories: ['Romance', 'Contemporary Fiction'],
+        rating: 4.3,
+        ratingCount: 95000,
+        googleBooksUrl: 'https://books.google.com/books?id=example',
+        recommendation: `Your search patterns suggest you enjoy romance - this contemporary romance is highly rated and perfect for your taste.`
       });
     }
 
@@ -197,7 +264,7 @@ export const useRecommendations = () => {
   const getBasedOnLibraryRecommendations = (): Book[] => {
     const { clickedBooks, savedBooks = [] } = recommendationData;
     
-    // Generate recommendations based on saved books and clicked books
+    // Generate recommendations based on saved books, clicked books, and reading sessions
     const recommendations: Book[] = [];
     
     // Combine saved books and clicked books for analysis
@@ -205,6 +272,12 @@ export const useRecommendations = () => {
       ...savedBooks.map(book => book.book_data),
       ...(clickedBooks || [])
     ];
+    
+    // Add books from search history clicks
+    const searchClickedBooks = searchHistory.flatMap(search => 
+      (search.clicked_books || []).map(book => book)
+    );
+    allBooks.push(...searchClickedBooks);
     
     if (allBooks.length > 0) {
       // Find common themes/genres from all user interactions
@@ -268,12 +341,18 @@ export const useRecommendations = () => {
   const getTrendingBasedOnHistory = (): Book[] => {
     const { savedBooks = [], recentQueries = [], popularGenres = [] } = recommendationData;
     
-    // Generate trending recommendations based on user's patterns and current trends
+    // Generate trending recommendations based on user's patterns, search history, and current trends
     const recommendations: Book[] = [];
+    
+    // Get search patterns from recent searches
+    const recentSearchTerms = searchHistory.slice(0, 5).map(s => s.query.toLowerCase()).join(' ');
     
     // Get user's genre preferences
     const userGenres = savedBooks.flatMap(book => book.book_data.categories || []);
-    const combinedGenres = [...userGenres, ...popularGenres];
+    const searchGenres = searchHistory.flatMap(search => 
+      (search.clicked_books || []).flatMap(book => book.categories || [])
+    );
+    const combinedGenres = [...userGenres, ...popularGenres, ...searchGenres];
     const genreCount = combinedGenres.reduce((acc, genre) => {
       acc[genre] = (acc[genre] || 0) + 1;
       return acc;
@@ -299,8 +378,8 @@ export const useRecommendations = () => {
     }
     
     // Add recommendations based on recent search queries
-    if (recentQueries.length > 0) {
-      const recentThemes = recentQueries.join(' ').toLowerCase();
+    if (recentQueries.length > 0 || recentSearchTerms) {
+      const recentThemes = (recentQueries.join(' ') + ' ' + recentSearchTerms).toLowerCase();
       let trendingCategory = 'Fiction';
       let trendingDescription = 'Popular books matching your recent searches';
       
@@ -327,6 +406,25 @@ export const useRecommendations = () => {
         ratingCount: 67000,
         googleBooksUrl: 'https://books.google.com/books?id=example',
         recommendation: `Based on your recent searches for "${recentQueries.slice(0, 2).join('", "')}", this trending book should interest you.`
+      });
+    }
+    
+    // Add recommendations based on reading frequency and patterns
+    const readBooks = savedBooks.filter(book => book.is_read);
+    if (readBooks.length >= 5) {
+      const avgRating = readBooks.reduce((sum, book) => sum + (book.user_rating || 4), 0) / readBooks.length;
+      recommendations.push({
+        id: 'rec-trending-reader-1',
+        title: 'Trending for Active Readers',
+        authors: ['Curated Selection'],
+        description: `Trending books perfect for someone who has read ${readBooks.length} books with an average rating of ${avgRating.toFixed(1)} stars.`,
+        coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=450&fit=crop',
+        publishedDate: '2024',
+        categories: [topUserGenre || 'Fiction'],
+        rating: 4.6,
+        ratingCount: 125000,
+        googleBooksUrl: 'https://books.google.com/books?id=example',
+        recommendation: `As an active reader with ${readBooks.length} completed books, these trending titles match your reading level and preferences.`
       });
     }
     

@@ -2,8 +2,11 @@ import { useState, useCallback } from 'react';
 import { BookSearchRequest, SearchState } from '../types';
 import { bookSearchService } from '../services/api';
 import { useSearchHistory } from './useSearchHistory';
+import { DatabaseService } from '../lib/supabase';
+import { useAuth } from './useAuth.tsx';
 
 export const useBookSearch = () => {
+  const { user } = useAuth();
   const { saveSearch, recordBookClick } = useSearchHistory();
   const [searchState, setSearchState] = useState<SearchState>({
     isLoading: false,
@@ -24,15 +27,18 @@ export const useBookSearch = () => {
     try {
       const response = await bookSearchService.searchBooks(request);
       
-      // Save search to history
-      const searchId = await saveSearch(
-        request.query,
-        response.totalResults,
-        {
-          processing_time: response.processingTime,
-          timestamp: Date.now()
-        }
-      );
+      // Save search to history if user is authenticated
+      let searchId = null;
+      if (user) {
+        searchId = await saveSearch(
+          request.query,
+          response.totalResults,
+          {
+            processing_time: response.processingTime,
+            timestamp: Date.now()
+          }
+        );
+      }
       
       setSearchState({
         isLoading: false,
@@ -53,8 +59,10 @@ export const useBookSearch = () => {
   }, []);
 
   const handleBookClick = useCallback(async (book: any) => {
-    await recordBookClick(book);
-  }, [recordBookClick]);
+    if (user) {
+      await recordBookClick(book);
+    }
+  }, [recordBookClick, user]);
 
   const clearSearch = useCallback(() => {
     setSearchState({

@@ -133,28 +133,28 @@ const BookCarousel: React.FC = () => {
 
   return (
     <div 
-      className="relative bg-white rounded-lg shadow-sm p-3 border border-gray-100"
+      className="relative bg-white rounded-lg shadow-sm p-2 border border-gray-100"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <div>
-          <h3 className="text-base font-bold text-gray-900 mb-0.5">Trending Books</h3>
+          <h3 className="text-sm font-bold text-gray-900 mb-0.5">Trending Books</h3>
           <p className="text-xs text-gray-600">Discover what everyone's reading</p>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={prevSlide}
-            className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            className="p-0.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
           >
-            <ChevronLeft className="w-3 h-3 text-gray-600" />
+            <ChevronLeft className="w-2.5 h-2.5 text-gray-600" />
           </button>
           <button
             onClick={nextSlide}
-            className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            className="p-0.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
           >
-            <ChevronRight className="w-3 h-3 text-gray-600" />
+            <ChevronRight className="w-2.5 h-2.5 text-gray-600" />
           </button>
         </div>
       </div>
@@ -166,10 +166,10 @@ const BookCarousel: React.FC = () => {
           style={{ transform: `translateX(-${currentIndex * (100 / booksPerView)}%)` }}
         >
           {featuredBooks.map((book) => (
-            <div key={book.id} className="flex-shrink-0 w-1/4 px-1">
+            <div key={book.id} className="flex-shrink-0 w-1/4 px-0.5">
               <div className="group cursor-pointer">
-                <div className="relative mb-1.5">
-                  <div className="aspect-[2/3] bg-gray-100 rounded-md overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                <div className="relative mb-1">
+                  <div className="aspect-[2/3] bg-gray-100 rounded-sm overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-300">
                     <img
                       src={book.cover}
                       alt={book.title}
@@ -179,24 +179,24 @@ const BookCarousel: React.FC = () => {
                   
                   {/* Badge */}
                   {book.badge && (
-                    <div className={`absolute top-1 left-1 px-1 py-0.5 rounded-full text-xs font-medium flex items-center space-x-0.5 ${getBadgeColor(book.badge)}`}>
+                    <div className={`absolute top-0.5 left-0.5 px-0.5 py-0.5 rounded-full text-xs font-medium flex items-center space-x-0.5 ${getBadgeColor(book.badge)}`}>
                       {getBadgeIcon(book.badge)}
                       <span className="capitalize text-xs">{book.badge}</span>
                     </div>
                   )}
 
                   {/* Rating */}
-                  <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white px-1 py-0.5 rounded-full text-xs flex items-center space-x-0.5">
-                    <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+                  <div className="absolute bottom-0.5 right-0.5 bg-black bg-opacity-70 text-white px-0.5 py-0.5 rounded-full text-xs flex items-center space-x-0.5">
+                    <Star className="w-2 h-2 fill-yellow-400 text-yellow-400" />
                     <span className="text-xs">{book.rating}</span>
                   </div>
                 </div>
 
                 <div className="text-center">
-                  <h4 className="font-semibold text-gray-900 text-xs mb-0.5 line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                  <h4 className="font-semibold text-gray-900 text-xs mb-0.5 line-clamp-1 group-hover:text-indigo-600 transition-colors">
                     {book.title}
                   </h4>
-                  <p className="text-xs text-gray-600 mb-0.5">{book.author}</p>
+                  <p className="text-xs text-gray-600 mb-0.5 truncate">{book.author}</p>
                   <p className="text-xs text-indigo-600 font-medium truncate">{book.category}</p>
                 </div>
               </div>
@@ -206,7 +206,7 @@ const BookCarousel: React.FC = () => {
       </div>
 
       {/* Dots Indicator */}
-      <div className="flex justify-center space-x-1 mt-2">
+      <div className="flex justify-center space-x-0.5 mt-1.5">
         {Array.from({ length: maxIndex + 1 }).map((_, index) => (
           <button
             key={index}

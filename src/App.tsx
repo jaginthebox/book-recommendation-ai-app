@@ -6,6 +6,7 @@ import SearchBar from './components/SearchInterface/SearchBar';
 import BookGrid from './components/BookResults/BookGrid';
 import LoadingSpinner from './components/Common/LoadingSpinner';
 import EmptyState from './components/Common/EmptyState';
+import RecommendationsPage from './components/Recommendations/RecommendationsPage';
 import BookCarousel from './components/Common/BookCarousel';
 import { useBookSearch } from './hooks/useBookSearch';
 import { Book } from './types';
@@ -69,17 +70,7 @@ function App() {
         {currentPage === 'library' ? (
           <LibraryPage />
         ) : currentPage === 'recommendations' ? (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-indigo-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Recommendations Coming Soon</h2>
-              <p className="text-gray-600 max-w-md mx-auto">
-                We're working on personalized book recommendations based on your reading history and preferences.
-              </p>
-            </div>
-          </div>
+          <RecommendationsPage />
         ) : currentPage === 'about' ? (
           <div className="min-h-screen bg-gray-50">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

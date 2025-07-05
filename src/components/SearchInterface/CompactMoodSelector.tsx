@@ -101,7 +101,7 @@ const CompactMoodSelector: React.FC<CompactMoodSelectorProps> = ({
     <div className={`relative ${className}`}>
       {/* Compact Mood Bar */}
       <div className="relative bg-gradient-to-r from-purple-100 via-pink-50 to-indigo-100 rounded-xl p-3 border border-gray-200 shadow-sm">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-start space-x-4">
           {/* Label */}
           <div className="flex items-center space-x-2 text-sm text-gray-700 font-medium">
             <span className="text-purple-600">✨</span>
@@ -109,7 +109,7 @@ const CompactMoodSelector: React.FC<CompactMoodSelectorProps> = ({
           </div>
 
           {/* Mood Icons */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 flex-1">
             {moods.map((mood) => {
               const isHovered = hoveredMood?.id === mood.id;
               const isSelected = selectedMood?.id === mood.id;
@@ -174,15 +174,17 @@ const CompactMoodSelector: React.FC<CompactMoodSelectorProps> = ({
 
           {/* Clear Selection */}
           {selectedMood && (
-            <button
-              onClick={() => onMoodSelect(null)}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
-              title="Clear mood selection"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div className="flex-shrink-0">
+              <button
+                onClick={() => onMoodSelect(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                title="Clear mood selection"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           )}
         </div>
 

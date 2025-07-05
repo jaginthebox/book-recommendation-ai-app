@@ -316,7 +316,7 @@ function AppContent() {
             <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
               <div className="text-center mb-6">
                 <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                  Describe your perfect book
+                  Describe your perfect book and customize with your mood
                 </h3>
                 <p className="text-gray-600 max-w-2xl mx-auto">
                   Tell us what you're looking for, and our AI will find exactly what matches your taste.

@@ -1,431 +1,420 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Heart, 
-  Star, 
-  TrendingUp, 
-  Award, 
-  Clock, 
-  Users, 
-  BookOpen, 
-  Filter, 
-  Search,
-  Sparkles,
-  User,
-  Crown,
-  Flame,
-  Target,
-  Globe,
-  Calendar,
-  ChevronRight,
-  RefreshCw
-} from 'lucide-react';
-import { useAuth } from './useAuth.tsx';
-import { Book } from '../../types';
-import BookCard from '../components/BookResults/BookCard';
-import MoodSelector, { Mood } from '../components/SearchInterface/MoodSelector';
-import { useRecommendations } from './useRecommendations';
-import { useSearchHistory } from './useSearchHistory';
+import { useState, useEffect } from 'react';
+import { useAuth } from './useAuth';
+import { supabase } from '../lib/supabase';
 
-// Static curated recommendations for non-authenticated users and fallback
-const staticCuratedRecommendations: RecommendationSection[] = [
-  {
-    id: 'staff-picks',
-    title: 'Staff Picks',
-    description: 'Curated selections from our literary experts',
-    icon: Crown,
-    type: 'curated',
-    books: [
-      {
-        id: 'staff-1',
-        title: 'Lessons in Chemistry',
-        authors: ['Bonnie Garmus'],
-        description: 'A brilliant scientist\'s unconventional approach to cooking and life in 1960s California.',
-        coverImage: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=300&h=450&fit=crop',
-        publishedDate: '2022',
-        pageCount: 400,
-        categories: ['Historical Fiction', 'Humor'],
-        rating: 4.6,
-        ratingCount: 45000,
-        googleBooksUrl: 'https://books.google.com/books?id=example4',
-        recommendation: 'Our editor\'s choice for best debut novel of the year!'
-      },
-      {
-        id: 'staff-2',
-        title: 'The Seven Husbands of Evelyn Hugo',
-        authors: ['Taylor Jenkins Reid'],
-        description: 'A reclusive Hollywood icon finally tells her story to a young journalist.',
-        coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=450&fit=crop',
-        publishedDate: '2017',
-        pageCount: 400,
-        categories: ['Historical Fiction', 'Romance'],
-        rating: 4.5,
-        ratingCount: 38000,
-        googleBooksUrl: 'https://books.google.com/books?id=example5',
-        recommendation: 'A captivating tale of love, ambition, and secrets!'
-      }
-    ]
-  },
-  {
-    id: 'trending',
-    title: 'Trending Now',
-    description: 'Popular books everyone is talking about',
-    icon: TrendingUp,
-    type: 'community',
-    books: [
-      {
-        id: 'trending-1',
-        title: 'Fourth Wing',
-        authors: ['Rebecca Yarros'],
-        description: 'A thrilling fantasy about dragon riders and war college.',
-        coverImage: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=450&fit=crop',
-        publishedDate: '2023',
-        pageCount: 500,
-        categories: ['Fantasy', 'Romance'],
-        rating: 4.7,
-        ratingCount: 52000,
-        googleBooksUrl: 'https://books.google.com/books?id=example6',
-        recommendation: 'The fantasy romance taking the world by storm!'
-      }
-    ]
-  }
-];
-
-interface RecommendationSection {
+export interface SavedBook {
   id: string;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  books: Book[];
-  type: 'personalized' | 'curated' | 'community' | 'discovery';
+  user_id: string;
+  book_id: string;
+  book_data: any;
+  is_read: boolean;
+  reading_progress: number;
+  user_rating?: number;
+  notes?: string;
+  tags: string[];
+  saved_at: string;
+  read_at?: string;
+  updated_at: string;
+  status: 'want_to_read' | 'currently_reading' | 'read';
+  priority: number;
+  date_started?: string;
 }
 
-const RecommendationsPage: React.FC = () => {
+export interface WishlistItem {
+  id: string;
+  user_id: string;
+  book_id: string;
+  book_data: any;
+  user_rating?: number;
+  comments?: string;
+  priority: number;
+  tags: string[];
+  added_at: string;
+  updated_at: string;
+}
+
+export interface ReadingGoal {
+  id: string;
+  user_id: string;
+  year: number;
+  target_books: number;
+  current_books: number;
+  target_pages?: number;
+  current_pages: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BookCollection {
+  id: string;
+  user_id: string;
+  name: string;
+  description?: string;
+  is_public: boolean;
+  book_ids: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export const useLibrary = () => {
   const { user } = useAuth();
-  const { 
-    recommendationData, 
-    isLoading: recommendationsLoading,
-    generatePersonalizedRecommendations,
-    getBasedOnLibraryRecommendations,
-    getTrendingBasedOnHistory
-  } = useRecommendations();
-  const { searchHistory } = useSearchHistory();
-  const [activeFilter, setActiveFilter] = useState<'all' | 'personalized' | 'curated' | 'community' | 'discovery'>('all');
-  const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [savedBooks, setSavedBooks] = useState<SavedBook[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [readingGoals, setReadingGoals] = useState<ReadingGoal[]>([]);
+  const [collections, setCollections] = useState<BookCollection[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock recommendation data
-  const [recommendations, setRecommendations] = useState<RecommendationSection[]>(staticCuratedRecommendations);
-
-  // Generate recommendations based on user data
+  // Load user's library data
   useEffect(() => {
-    if (user && !recommendationsLoading) {
-      const personalizedBooks = generatePersonalizedRecommendations();
-      const libraryBasedBooks = getBasedOnLibraryRecommendations();
-      const trendingBooks = getTrendingBasedOnHistory();
-
-      const newRecommendations: RecommendationSection[] = [
-        // Only add personalized sections if we have data
-        ...(personalizedBooks.length > 0 ? [{
-          id: 'for-you',
-          title: 'Recommended for You',
-          description: `Personalized picks based on your ${searchHistory.length} searches and reading history`,
-          icon: Target,
-          type: 'personalized' as const,
-          books: personalizedBooks
-        }] : []),
-        ...(libraryBasedBooks.length > 0 ? [{
-          id: 'based-on-library',
-          title: 'Based on Your Reading History',
-          description: `Suggestions from your ${recommendationData.clickedBooks.length} book interactions`,
-          icon: BookOpen,
-          type: 'personalized' as const,
-          books: libraryBasedBooks
-        }] : []),
-        ...(trendingBooks.length > 0 ? [{
-          id: 'trending-based-on-you',
-          title: 'Trending for Your Taste',
-          description: 'Popular books that match your reading patterns',
-          icon: TrendingUp,
-          type: 'community' as const,
-          books: trendingBooks
-        }] : []),
-        // Always include curated sections
-        ...staticCuratedRecommendations
-      ];
-
-      setRecommendations(newRecommendations);
-    } else {
-      // Ensure recommendations are set to static data when user is not authenticated
-      setRecommendations(staticCuratedRecommendations);
-    }
-  }, [user, recommendationsLoading, recommendationData, searchHistory, generatePersonalizedRecommendations, getBasedOnLibraryRecommendations, getTrendingBasedOnHistory]);
-
-  const filteredRecommendations = recommendations.filter(section => {
-    if (activeFilter === 'all') return true;
-    return section.type === activeFilter;
-  });
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    // Reload recommendation data
     if (user) {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Minimum loading time for UX
+      loadLibraryData();
+    } else {
+      // Clear data when user logs out
+      setSavedBooks([]);
+      setWishlistItems([]);
+      setReadingGoals([]);
+      setCollections([]);
     }
-    setIsRefreshing(false);
+  }, [user]);
+
+  const loadLibraryData = async () => {
+    if (!user) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Load saved books
+      const { data: savedBooksData, error: savedBooksError } = await supabase
+        .from('saved_books')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('saved_at', { ascending: false });
+
+      if (savedBooksError) throw savedBooksError;
+
+      // Load wishlist items
+      const { data: wishlistData, error: wishlistError } = await supabase
+        .from('wishlist')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('added_at', { ascending: false });
+
+      if (wishlistError) throw wishlistError;
+
+      // Load reading goals
+      const { data: goalsData, error: goalsError } = await supabase
+        .from('reading_goals')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('year', { ascending: false });
+
+      if (goalsError) throw goalsError;
+
+      // Load collections
+      const { data: collectionsData, error: collectionsError } = await supabase
+        .from('book_collections')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (collectionsError) throw collectionsError;
+
+      setSavedBooks(savedBooksData || []);
+      setWishlistItems(wishlistData || []);
+      setReadingGoals(goalsData || []);
+      setCollections(collectionsData || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load library data');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const getFilterIcon = (filter: string) => {
-    switch (filter) {
-      case 'personalized': return Target;
-      case 'curated': return Crown;
-      case 'community': return Users;
-      case 'discovery': return Globe;
-      default: return Filter;
-    }
+  // Save a book to the library
+  const saveBook = async (book: any, status: 'want_to_read' | 'currently_reading' | 'read' = 'want_to_read') => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('saved_books')
+      .upsert({
+        user_id: user.id,
+        book_id: book.id,
+        book_data: book,
+        status,
+        is_read: status === 'read',
+        date_started: status === 'currently_reading' ? new Date().toISOString() : null
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Update local state
+    setSavedBooks(prev => {
+      const existing = prev.find(b => b.book_id === book.id);
+      if (existing) {
+        return prev.map(b => b.book_id === book.id ? data : b);
+      } else {
+        return [data, ...prev];
+      }
+    });
+
+    return data;
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        {/* Hero Section for Non-Users */}
-        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Heart className="w-10 h-10 text-white" />
-              </div>
-              <h1 className="text-4xl font-bold mb-4">Discover Your Next Favorite Book</h1>
-              <p className="text-xl text-white text-opacity-90 max-w-2xl mx-auto mb-8">
-                Get personalized recommendations based on your reading history and preferences
-              </p>
-              <button 
-                onClick={() => window.location.hash = ''}
-                className="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-              >
-                Sign Up for Personalized Recommendations
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Remove a book from the library
+  const removeBook = async (bookId: string) => {
+    if (!user) throw new Error('User not authenticated');
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center mb-4">
-                <div className="w-16 h-16 bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl flex items-center justify-center mr-4">
-                  <Heart className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-4xl font-bold">Recommendations</h1>
-                  <p className="text-xl text-white text-opacity-90">
-                    Based on your {searchHistory.length} searches and reading patterns
-                  </p>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="flex items-center space-x-2 bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
-            </button>
-          </div>
-        </div>
-      </div>
+    const { error } = await supabase
+      .from('saved_books')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('book_id', bookId);
 
-      {/* Search History Insights */}
-      {user && searchHistory.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 mb-8">
-            <h3 className="text-lg font-semibold text-blue-900 mb-2 flex items-center">
-              <Sparkles className="w-5 h-5 mr-2" />
-              Your Reading Insights
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-blue-700 font-medium">Recent Searches</p>
-                <p className="text-blue-600">
-                  {searchHistory.slice(0, 2).map(s => s.query).join(', ') || 'No recent searches'}
-                </p>
-              </div>
-              <div>
-                <p className="text-blue-700 font-medium">Favorite Genres</p>
-                <p className="text-blue-600">{recommendationData.popularGenres.slice(0, 3).join(', ')}</p>
-              </div>
-              <div>
-                <p className="text-blue-700 font-medium">Books Explored</p>
-                <p className="text-blue-600">
-                  {searchHistory.reduce((total, search) => total + (search.clicked_books?.length || 0), 0)} books clicked
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+    if (error) throw error;
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters and Search */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            {/* Filter Tabs */}
-            <div className="flex flex-wrap gap-2">
-              {[
-                { id: 'all', label: 'All Recommendations', icon: Filter },
-                { id: 'personalized', label: 'For You', icon: Target },
-                { id: 'curated', label: 'Curated', icon: Crown },
-                { id: 'community', label: 'Community', icon: Users },
-                { id: 'discovery', label: 'Discovery', icon: Globe }
-              ].map((filter) => {
-                const IconComponent = filter.icon;
-                return (
-                  <button
-                    key={filter.id}
-                    onClick={() => setActiveFilter(filter.id as any)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      activeFilter === filter.id
-                        ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
-                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'
-                    }`}
-                  >
-                    <IconComponent className="w-4 h-4" />
-                    <span>{filter.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+    setSavedBooks(prev => prev.filter(book => book.book_id !== bookId));
+  };
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search recommendations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-full lg:w-64"
-              />
-            </div>
-          </div>
-        </div>
+  // Update book status
+  const updateBookStatus = async (bookId: string, status: 'want_to_read' | 'currently_reading' | 'read') => {
+    if (!user) throw new Error('User not authenticated');
 
-        {/* Mood-Based Recommendations */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-          <div className="mb-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center">
-              <Sparkles className="w-5 h-5 mr-2 text-indigo-600" />
-              Browse by Mood
-            </h3>
-            <p className="text-gray-600">Find books that match how you're feeling today</p>
-          </div>
-          <MoodSelector
-            selectedMood={selectedMood}
-            onMoodSelect={setSelectedMood}
-          />
-        </div>
+    const updates: any = {
+      status,
+      is_read: status === 'read',
+      updated_at: new Date().toISOString()
+    };
 
-        {/* Recommendation Sections */}
-        <div className="space-y-8">
-          {filteredRecommendations.map((section) => {
-            const IconComponent = section.icon;
-            return (
-              <div key={section.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                      <IconComponent className="w-5 h-5 text-indigo-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900">{section.title}</h3>
-                      <p className="text-gray-600 text-sm">{section.description}</p>
-                    </div>
-                  </div>
-                  <button className="flex items-center space-x-1 text-indigo-600 hover:text-indigo-700 font-medium text-sm">
-                    <span>View All</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+    if (status === 'currently_reading') {
+      updates.date_started = new Date().toISOString();
+    } else if (status === 'read') {
+      updates.read_at = new Date().toISOString();
+    }
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {section.books.map((book) => (
-                    <BookCard key={book.id} book={book} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-          
-          {recommendationsLoading && (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading personalized recommendations...</p>
-            </div>
-          )}
-          
-          {!recommendationsLoading && filteredRecommendations.length === 0 && (
-            <div className="text-center py-12">
-              <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">No recommendations yet</h3>
-              <p className="text-gray-600 mb-6">
-                Start searching for books and saving them to your library to get personalized recommendations!
-              </p>
-              <button 
-                onClick={() => window.location.hash = ''}
-                className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
-              >
-                Discover Books
-              </button>
-            </div>
-          )}
-        </div>
+    const { data, error } = await supabase
+      .from('saved_books')
+      .update(updates)
+      .eq('user_id', user.id)
+      .eq('book_id', bookId)
+      .select()
+      .single();
 
-        {/* Quick Discovery Tools */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 border border-blue-200">
-            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-4">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">Reading Groups</h4>
-            <p className="text-gray-600 text-sm mb-4">Join discussions about books you love</p>
-            <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
-              Explore Groups →
-            </button>
-          </div>
+    if (error) throw error;
 
-          <div className="bg-gradient-to-br from-purple-50 to-pink-100 rounded-xl p-6 border border-purple-200">
-            <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-4">
-              <Calendar className="w-6 h-6 text-white" />
-            </div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">Reading Challenges</h4>
-            <p className="text-gray-600 text-sm mb-4">Set goals and track your progress</p>
-            <button className="text-purple-600 hover:text-purple-700 font-medium text-sm">
-              Join Challenge →
-            </button>
-          </div>
+    setSavedBooks(prev => prev.map(book => 
+      book.book_id === bookId ? data : book
+    ));
 
-          <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border border-green-200">
-            <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mb-4">
-              <Flame className="w-6 h-6 text-white" />
-            </div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">Hot Topics</h4>
-            <p className="text-gray-600 text-sm mb-4">Books trending in current events</p>
-            <button className="text-green-600 hover:text-green-700 font-medium text-sm">
-              See Trending →
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    return data;
+  };
+
+  // Update reading progress
+  const updateReadingProgress = async (bookId: string, progress: number) => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('saved_books')
+      .update({ 
+        reading_progress: progress,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user.id)
+      .eq('book_id', bookId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    setSavedBooks(prev => prev.map(book => 
+      book.book_id === bookId ? data : book
+    ));
+
+    return data;
+  };
+
+  // Add to wishlist
+  const addToWishlist = async (book: any, priority: number = 3) => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('wishlist')
+      .upsert({
+        user_id: user.id,
+        book_id: book.id,
+        book_data: book,
+        priority
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    setWishlistItems(prev => {
+      const existing = prev.find(item => item.book_id === book.id);
+      if (existing) {
+        return prev.map(item => item.book_id === book.id ? data : item);
+      } else {
+        return [data, ...prev];
+      }
+    });
+
+    return data;
+  };
+
+  // Remove from wishlist
+  const removeFromWishlist = async (bookId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('wishlist')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('book_id', bookId);
+
+    if (error) throw error;
+
+    setWishlistItems(prev => prev.filter(item => item.book_id !== bookId));
+  };
+
+  // Create or update reading goal
+  const setReadingGoal = async (year: number, targetBooks: number, targetPages?: number) => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('reading_goals')
+      .upsert({
+        user_id: user.id,
+        year,
+        target_books: targetBooks,
+        target_pages: targetPages
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    setReadingGoals(prev => {
+      const existing = prev.find(goal => goal.year === year);
+      if (existing) {
+        return prev.map(goal => goal.year === year ? data : goal);
+      } else {
+        return [data, ...prev];
+      }
+    });
+
+    return data;
+  };
+
+  // Create a new collection
+  const createCollection = async (name: string, description?: string, isPublic: boolean = false) => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('book_collections')
+      .insert({
+        user_id: user.id,
+        name,
+        description,
+        is_public: isPublic
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    setCollections(prev => [data, ...prev]);
+    return data;
+  };
+
+  // Add book to collection
+  const addBookToCollection = async (collectionId: string, bookId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    const collection = collections.find(c => c.id === collectionId);
+    if (!collection) throw new Error('Collection not found');
+
+    const updatedBookIds = [...collection.book_ids, bookId];
+
+    const { data, error } = await supabase
+      .from('book_collections')
+      .update({ book_ids: updatedBookIds })
+      .eq('id', collectionId)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    setCollections(prev => prev.map(c => c.id === collectionId ? data : c));
+    return data;
+  };
+
+  // Helper functions
+  const isBookSaved = (bookId: string) => {
+    return savedBooks.some(book => book.book_id === bookId);
+  };
+
+  const isBookInWishlist = (bookId: string) => {
+    return wishlistItems.some(item => item.book_id === bookId);
+  };
+
+  const getBookStatus = (bookId: string) => {
+    const savedBook = savedBooks.find(book => book.book_id === bookId);
+    return savedBook?.status || null;
+  };
+
+  const getReadingProgress = (bookId: string) => {
+    const savedBook = savedBooks.find(book => book.book_id === bookId);
+    return savedBook?.reading_progress || 0;
+  };
+
+  // Statistics
+  const getLibraryStats = () => {
+    const totalBooks = savedBooks.length;
+    const readBooks = savedBooks.filter(book => book.is_read).length;
+    const currentlyReading = savedBooks.filter(book => book.status === 'currently_reading').length;
+    const wantToRead = savedBooks.filter(book => book.status === 'want_to_read').length;
+    const wishlistCount = wishlistItems.length;
+
+    return {
+      totalBooks,
+      readBooks,
+      currentlyReading,
+      wantToRead,
+      wishlistCount
+    };
+  };
+
+  return {
+    // State
+    savedBooks,
+    wishlistItems,
+    readingGoals,
+    collections,
+    isLoading,
+    error,
+
+    // Actions
+    saveBook,
+    removeBook,
+    updateBookStatus,
+    updateReadingProgress,
+    addToWishlist,
+    removeFromWishlist,
+    setReadingGoal,
+    createCollection,
+    addBookToCollection,
+    loadLibraryData,
+
+    // Helpers
+    isBookSaved,
+    isBookInWishlist,
+    getBookStatus,
+    getReadingProgress,
+    getLibraryStats
+  };
 };
-
-export default RecommendationsPage;

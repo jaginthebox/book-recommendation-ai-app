@@ -409,53 +409,6 @@ function AppContent() {
                     <span className="text-red-600 text-lg font-bold">!</span>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-red-800">Search Error</h3>
-                  <p className="text-red-700 mt-1">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!isLoading && !error && hasSearched && results.length > 0 && (
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
-                    <Sparkles className="w-6 h-6 mr-2 text-indigo-600" />
-                    Found {totalResults} perfect matches
-                  </h3>
-                  <p className="text-gray-700 mt-2">
-                    Search completed in {processingTime} • Powered by AI semantic matching
-                  </p>
-                </div>
-              </div>
-              
-              <BookGrid 
-                books={results} 
-                onBookClick={handleBookClick}
-              />
-            </div>
-          )}
-
-          {!isLoading && !error && hasSearched && results.length === 0 && (
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-12 border border-gray-200">
-              <EmptyState 
-                type="no-results" 
-                query={currentQuery}
-                onTryExample={handleTryExample}
-              />
-            </div>
-          )}
-
-          {!hasSearched && !isLoading && (
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-12 border border-gray-200">
-              <EmptyState 
-                type="initial"
-                onTryExample={handleTryExample}
-              />
-            </div>
-          )}
         </div>
       </main>
       )}

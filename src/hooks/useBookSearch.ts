@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { BookSearchRequest, SearchState } from '../types';
 import { bookSearchService } from '../services/api';
+import { useSearchHistory } from './useSearchHistory';
 
 export const useBookSearch = () => {
+  const { saveSearch, recordBookClick } = useSearchHistory();
   const [searchState, setSearchState] = useState<SearchState>({
     isLoading: false,
     results: [],
@@ -22,6 +24,16 @@ export const useBookSearch = () => {
     try {
       const response = await bookSearchService.searchBooks(request);
       
+      // Save search to history
+      const searchId = await saveSearch(
+        request.query,
+        response.totalResults,
+        {
+          processing_time: response.processingTime,
+          timestamp: Date.now()
+        }
+      );
+      
       setSearchState({
         isLoading: false,
         results: response.results,
@@ -40,6 +52,10 @@ export const useBookSearch = () => {
     }
   }, []);
 
+  const handleBookClick = useCallback(async (book: any) => {
+    await recordBookClick(book);
+  }, [recordBookClick]);
+
   const clearSearch = useCallback(() => {
     setSearchState({
       isLoading: false,
@@ -54,6 +70,7 @@ export const useBookSearch = () => {
   return {
     ...searchState,
     searchBooks,
+    handleBookClick,
     clearSearch
   };
 };

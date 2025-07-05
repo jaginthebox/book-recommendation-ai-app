@@ -23,6 +23,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { Book } from '../../types';
 import BookCard from '../BookResults/BookCard';
 import MoodSelector, { Mood } from '../SearchInterface/MoodSelector';
+import { useRecommendations } from '../../hooks/useRecommendations';
+import { useSearchHistory } from '../../hooks/useSearchHistory';
 
 interface RecommendationSection {
   id: string;
@@ -35,203 +37,83 @@ interface RecommendationSection {
 
 const RecommendationsPage: React.FC = () => {
   const { user } = useAuth();
+  const { 
+    recommendationData, 
+    isLoading: recommendationsLoading,
+    generatePersonalizedRecommendations,
+    getBasedOnLibraryRecommendations,
+    getTrendingBasedOnHistory
+  } = useRecommendations();
+  const { searchHistory } = useSearchHistory();
   const [activeFilter, setActiveFilter] = useState<'all' | 'personalized' | 'curated' | 'community' | 'discovery'>('all');
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Mock recommendation data
-  const [recommendations, setRecommendations] = useState<RecommendationSection[]>([
-    {
-      id: 'for-you',
-      title: 'Recommended for You',
-      description: 'Personalized picks based on your reading history and preferences',
-      icon: Target,
-      type: 'personalized',
-      books: [
+  const [recommendations, setRecommendations] = useState<RecommendationSection[]>([]);
+
+  // Generate recommendations based on user data
+  useEffect(() => {
+    if (user && !recommendationsLoading) {
+      const personalizedBooks = generatePersonalizedRecommendations();
+      const libraryBasedBooks = getBasedOnLibraryRecommendations();
+      const trendingBooks = getTrendingBasedOnHistory();
+
+      const newRecommendations: RecommendationSection[] = [
         {
-          id: 'rec-1',
-          title: 'The Seven Moons of Maali Almeida',
-          authors: ['Shehan Karunatilaka'],
-          description: 'A darkly comic fantasy about a photographer who wakes up dead and has seven moons to solve his own murder.',
-          coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=450&fit=crop',
-          publishedDate: '2022',
-          pageCount: 432,
-          categories: ['Fantasy', 'Literary Fiction'],
-          rating: 4.2,
-          ratingCount: 15000,
-          googleBooksUrl: 'https://books.google.com/books?id=example1',
-          recommendation: 'Perfect match for your love of magical realism and dark humor!'
+          id: 'for-you',
+          title: 'Recommended for You',
+          description: `Personalized picks based on your ${searchHistory.length} searches and reading history`,
+          icon: Target,
+          type: 'personalized',
+          books: personalizedBooks
         },
         {
-          id: 'rec-2',
-          title: 'Tomorrow, and Tomorrow, and Tomorrow',
-          authors: ['Gabrielle Zevin'],
-          description: 'A novel about friendship, art, and the creative process through the lens of video game design.',
-          coverImage: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop',
-          publishedDate: '2022',
-          pageCount: 416,
-          categories: ['Contemporary Fiction', 'Technology'],
-          rating: 4.4,
-          ratingCount: 32000,
-          googleBooksUrl: 'https://books.google.com/books?id=example2',
-          recommendation: 'Based on your interest in technology and human relationships.'
-        }
-      ]
-    },
-    {
-      id: 'based-on-library',
-      title: 'Based on Your Library',
-      description: 'Suggestions from books you\'ve saved and read',
-      icon: BookOpen,
-      type: 'personalized',
-      books: [
-        {
-          id: 'lib-1',
-          title: 'The Atlas Six',
-          authors: ['Olivie Blake'],
-          description: 'Six young magicians compete for a place in an ancient society that guards lost knowledge.',
-          coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=450&fit=crop',
-          publishedDate: '2022',
-          pageCount: 448,
-          categories: ['Fantasy', 'Dark Academia'],
-          rating: 4.1,
-          ratingCount: 28000,
-          googleBooksUrl: 'https://books.google.com/books?id=example3',
-          recommendation: 'Since you loved The Fifth Season, you\'ll enjoy this complex magic system.'
-        }
-      ]
-    },
-    {
-      id: 'staff-picks',
-      title: 'Staff Picks',
-      description: 'Curated selections from our literary experts',
-      icon: Crown,
-      type: 'curated',
-      books: [
-        {
-          id: 'staff-1',
-          title: 'Lessons in Chemistry',
-          authors: ['Bonnie Garmus'],
-          description: 'A brilliant scientist\'s unconventional approach to cooking and life in 1960s California.',
-          coverImage: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=300&h=450&fit=crop',
-          publishedDate: '2022',
-          pageCount: 400,
-          categories: ['Historical Fiction', 'Humor'],
-          rating: 4.6,
-          ratingCount: 45000,
-          googleBooksUrl: 'https://books.google.com/books?id=example4',
-          recommendation: 'Our editor\'s choice for best debut novel of the year!'
+          id: 'based-on-library',
+          title: 'Based on Your Reading History',
+          description: `Suggestions from your ${recommendationData.clickedBooks.length} book interactions`,
+          icon: BookOpen,
+          type: 'personalized',
+          books: libraryBasedBooks
         },
         {
-          id: 'staff-2',
-          title: 'The School for Good Mothers',
-          authors: ['Jessamine Chan'],
-          description: 'A dystopian novel about motherhood, surveillance, and what makes a good parent.',
-          coverImage: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=450&fit=crop',
-          publishedDate: '2022',
-          pageCount: 336,
-          categories: ['Dystopian Fiction', 'Literary Fiction'],
-          rating: 4.3,
-          ratingCount: 18000,
-          googleBooksUrl: 'https://books.google.com/books?id=example5',
-          recommendation: 'A thought-provoking exploration of modern parenting anxieties.'
-        }
-      ]
-    },
-    {
-      id: 'award-winners',
-      title: 'Award Winners',
-      description: 'Books that have won prestigious literary awards',
-      icon: Award,
-      type: 'curated',
-      books: [
+          id: 'trending-based-on-you',
+          title: 'Trending for Your Taste',
+          description: 'Popular books that match your reading patterns',
+          icon: TrendingUp,
+          type: 'community',
+          books: trendingBooks
+        },
+        // Keep some static curated sections
         {
-          id: 'award-1',
-          title: 'The Books of Jacob',
-          authors: ['Olga Tokarczuk'],
-          description: 'An epic novel about an 18th-century Jewish mystic and his followers.',
-          coverImage: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=300&h=450&fit=crop',
-          publishedDate: '2021',
-          pageCount: 912,
-          categories: ['Historical Fiction', 'Literary Fiction'],
-          rating: 4.0,
-          ratingCount: 12000,
-          googleBooksUrl: 'https://books.google.com/books?id=example6',
-          recommendation: 'Nobel Prize winner - a masterpiece of historical storytelling.'
+          id: 'staff-picks',
+          title: 'Staff Picks',
+          description: 'Curated selections from our literary experts',
+          icon: Crown,
+          type: 'curated',
+          books: [
+            {
+              id: 'staff-1',
+              title: 'Lessons in Chemistry',
+              authors: ['Bonnie Garmus'],
+              description: 'A brilliant scientist\'s unconventional approach to cooking and life in 1960s California.',
+              coverImage: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=300&h=450&fit=crop',
+              publishedDate: '2022',
+              pageCount: 400,
+              categories: ['Historical Fiction', 'Humor'],
+              rating: 4.6,
+              ratingCount: 45000,
+              googleBooksUrl: 'https://books.google.com/books?id=example4',
+              recommendation: 'Our editor\'s choice for best debut novel of the year!'
+            }
+          ]
         }
-      ]
-    },
-    {
-      id: 'trending-now',
-      title: 'Trending Now',
-      description: 'What readers are talking about this week',
-      icon: TrendingUp,
-      type: 'community',
-      books: [
-        {
-          id: 'trend-1',
-          title: 'Book Lovers',
-          authors: ['Emily Henry'],
-          description: 'A literary agent finds herself living out the plot of a romance novel in small-town North Carolina.',
-          coverImage: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=450&fit=crop',
-          publishedDate: '2022',
-          pageCount: 368,
-          categories: ['Romance', 'Contemporary Fiction'],
-          rating: 4.5,
-          ratingCount: 67000,
-          googleBooksUrl: 'https://books.google.com/books?id=example7',
-          recommendation: 'The romance everyone is talking about on BookTok!'
-        }
-      ]
-    },
-    {
-      id: 'popular-with-readers',
-      title: 'Popular with Readers Like You',
-      description: 'Highly rated by users with similar taste profiles',
-      icon: Users,
-      type: 'community',
-      books: [
-        {
-          id: 'popular-1',
-          title: 'The Invisible Life of Addie LaRue',
-          authors: ['V.E. Schwab'],
-          description: 'A young woman makes a Faustian bargain to live forever but is cursed to be forgotten by everyone she meets.',
-          coverImage: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=300&h=450&fit=crop',
-          publishedDate: '2020',
-          pageCount: 448,
-          categories: ['Fantasy', 'Romance'],
-          rating: 4.4,
-          ratingCount: 89000,
-          googleBooksUrl: 'https://books.google.com/books?id=example8',
-          recommendation: '94% of readers with your taste profile rated this 4+ stars.'
-        }
-      ]
-    },
-    {
-      id: 'new-releases',
-      title: 'New Releases',
-      description: 'Fresh books that match your interests',
-      icon: Clock,
-      type: 'discovery',
-      books: [
-        {
-          id: 'new-1',
-          title: 'The Atlas of Dreams',
-          authors: ['Zeyn Joukhadar'],
-          description: 'A sweeping novel about identity, belonging, and the power of storytelling.',
-          coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=450&fit=crop',
-          publishedDate: '2024',
-          pageCount: 384,
-          categories: ['Literary Fiction', 'LGBTQ+'],
-          rating: 4.2,
-          ratingCount: 3500,
-          googleBooksUrl: 'https://books.google.com/books?id=example9',
-          recommendation: 'Just released this month - perfect for fans of lyrical prose.'
-        }
-      ]
+      ];
+
+      setRecommendations(newRecommendations);
     }
-  ]);
+  }, [user, recommendationsLoading, recommendationData, searchHistory]);
 
   const filteredRecommendations = recommendations.filter(section => {
     if (activeFilter === 'all') return true;
@@ -240,8 +122,13 @@ const RecommendationsPage: React.FC = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Simulate API call to refresh recommendations
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Reload recommendation data
+    if (user) {
+      await Promise.all([
+        loadRecommendationData(),
+        new Promise(resolve => setTimeout(resolve, 1000)) // Minimum loading time for UX
+      ]);
+    }
     setIsRefreshing(false);
   };
 
@@ -309,7 +196,7 @@ const RecommendationsPage: React.FC = () => {
                 <div>
                   <h1 className="text-4xl font-bold">Recommendations</h1>
                   <p className="text-xl text-white text-opacity-90">
-                    Personalized just for you, {user.name || user.email.split('@')[0]}
+                    Based on your {searchHistory.length} searches and reading patterns
                   </p>
                 </div>
               </div>
@@ -325,6 +212,32 @@ const RecommendationsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Search History Insights */}
+      {user && searchHistory.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 mb-8">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2 flex items-center">
+              <Sparkles className="w-5 h-5 mr-2" />
+              Your Reading Insights
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-blue-700 font-medium">Recent Searches</p>
+                <p className="text-blue-600">{recommendationData.recentQueries.slice(0, 2).join(', ')}</p>
+              </div>
+              <div>
+                <p className="text-blue-700 font-medium">Favorite Genres</p>
+                <p className="text-blue-600">{recommendationData.popularGenres.slice(0, 3).join(', ')}</p>
+              </div>
+              <div>
+                <p className="text-blue-700 font-medium">Books Explored</p>
+                <p className="text-blue-600">{recommendationData.clickedBooks.length} books clicked</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters and Search */}
@@ -388,7 +301,7 @@ const RecommendationsPage: React.FC = () => {
 
         {/* Recommendation Sections */}
         <div className="space-y-8">
-          {filteredRecommendations.map((section) => {
+          {(recommendationsLoading ? [] : filteredRecommendations).map((section) => {
             const IconComponent = section.icon;
             return (
               <div key={section.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -416,6 +329,13 @@ const RecommendationsPage: React.FC = () => {
               </div>
             );
           })}
+          
+          {recommendationsLoading && (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading personalized recommendations...</p>
+            </div>
+          )}
         </div>
 
         {/* Quick Discovery Tools */}

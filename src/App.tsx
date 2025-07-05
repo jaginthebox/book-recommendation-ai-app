@@ -13,7 +13,7 @@ import { Book } from './types';
 import { BookOpen, Sparkles, Search, Heart } from 'lucide-react';
 
 function App() {
-  const { isLoading, results, error, totalResults, processingTime, hasSearched, searchBooks } = useBookSearch();
+  const { isLoading, results, error, totalResults, processingTime, hasSearched, searchBooks, handleBookClick } = useBookSearch();
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'recommendations' | 'about'>('home');
 
@@ -23,7 +23,8 @@ function App() {
   };
 
   const handleBookClick = (book: Book) => {
-    // TODO: Implement book detail modal or navigation
+    // Record the book click for recommendations
+    handleBookClick(book);
     console.log('Book clicked:', book);
   };
 

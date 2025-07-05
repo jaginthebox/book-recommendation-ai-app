@@ -94,6 +94,7 @@ export const useLibrary = () => {
       setIsLoading(false);
     }
   }, [user]);
+
   // Save book to library
   const saveBook = useCallback(async (
     book: Book, 
@@ -142,6 +143,7 @@ export const useLibrary = () => {
       return false;
     }
   }, [user]);
+
   // Remove book from library
   const removeBook = useCallback(async (bookId: string) => {
     if (!user) return false;
@@ -181,6 +183,7 @@ export const useLibrary = () => {
       return false;
     }
   }, [user]);
+
   // Update book details
   const updateBook = useCallback(async (
     bookId: string, 
@@ -233,6 +236,7 @@ export const useLibrary = () => {
       return false;
     }
   }, [user]);
+
   // Check if book is saved
   const isBookSaved = useCallback(async (bookId: string) => {
     if (!user) return false;
@@ -244,6 +248,7 @@ export const useLibrary = () => {
     if (!user) return false;
     return await DatabaseService.isInWishlist(user.id, bookId);
   }, [user]);
+
   // Toggle read status
   const toggleReadStatus = useCallback(async (bookId: string) => {
     const book = savedBooks.find(b => b.book_id === bookId);
@@ -268,6 +273,7 @@ export const useLibrary = () => {
       reading_progress: status === 'read' ? 100 : undefined
     });
   }, [updateBook]);
+
   // Update reading progress
   const updateReadingProgress = useCallback(async (bookId: string, progress: number) => {
     const status = progress >= 100 ? 'read' : progress > 0 ? 'currently_reading' : 'want_to_read';
@@ -313,6 +319,7 @@ export const useLibrary = () => {
       return false;
     }
   }, [user, loadLibrary]);
+
   // Load library on user change
   useEffect(() => {
     if (user) {
@@ -322,10 +329,17 @@ export const useLibrary = () => {
       setLibraryStats({
         totalBooks: 0,
         readBooks: 0,
+        currentlyReading: 0,
+        wantToRead: 0,
         booksWithNotes: 0,
+        wishlistCount: 0,
         averageRating: 0,
         topGenres: [],
-        readingProgress: 0
+        readingProgress: 0,
+        readingGoal: null,
+        readingStreak: 0,
+        totalPages: 0,
+        pagesRead: 0
       });
     }
   }, [user, loadLibrary]);
@@ -337,28 +351,20 @@ export const useLibrary = () => {
     targetPages?: number
   ) => {
     if (!user) return false;
-      loadWishlist();
 
     try {
-      setWishlistItems([]);
       const goal = await DatabaseService.setReadingGoal(user.id, year, targetBooks, targetPages);
       if (goal) {
         setLibraryStats(prev => ({ ...prev, readingGoal: goal }));
-        currentlyReading: 0,
-        wantToRead: 0,
         return true;
-        wishlistCount: 0,
       }
       return false;
-        readingProgress: 0,
-        readingGoal: null,
-        readingStreak: 0,
-        totalPages: 0,
-        pagesRead: 0
+    } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to set reading goal');
       return false;
-  }, [user, loadLibrary, loadWishlist]);
+    }
   }, [user]);
+
   return {
     savedBooks,
     wishlistItems,

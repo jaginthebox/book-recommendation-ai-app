@@ -125,39 +125,33 @@ const RecommendationsPage: React.FC = () => {
       const trendingBooks = getTrendingBasedOnHistory();
 
       const newRecommendations: RecommendationSection[] = [
-        {
+        // Only add personalized sections if we have data
+        ...(personalizedBooks.length > 0 ? [{
           id: 'for-you',
           title: 'Recommended for You',
           description: `Personalized picks based on your ${searchHistory.length} searches and reading history`,
           icon: Target,
-          type: 'personalized',
+          type: 'personalized' as const,
           books: personalizedBooks
-        },
-        {
+        }] : []),
+        ...(libraryBasedBooks.length > 0 ? [{
           id: 'based-on-library',
           title: 'Based on Your Reading History',
           description: `Suggestions from your ${recommendationData.clickedBooks.length} book interactions`,
           icon: BookOpen,
-          type: 'personalized',
+          type: 'personalized' as const,
           books: libraryBasedBooks
-        },
-        {
+        }] : []),
+        ...(trendingBooks.length > 0 ? [{
           id: 'trending-based-on-you',
           title: 'Trending for Your Taste',
           description: 'Popular books that match your reading patterns',
           icon: TrendingUp,
-          type: 'community',
+          type: 'community' as const,
           books: trendingBooks
-        },
-        // Keep some static curated sections
-        {
-          id: 'staff-picks',
-          title: 'Staff Picks',
-          description: 'Curated selections from our literary experts',
-          icon: Crown,
-          type: 'curated',
-          books: staticCuratedRecommendations[0].books
-        }
+        }] : []),
+        // Always include curated sections
+        ...staticCuratedRecommendations
       ];
 
       setRecommendations(newRecommendations);
@@ -165,7 +159,7 @@ const RecommendationsPage: React.FC = () => {
       // Ensure recommendations are set to static data when user is not authenticated
       setRecommendations(staticCuratedRecommendations);
     }
-  }, [user, recommendationsLoading, recommendationData, searchHistory]);
+  }, [user, recommendationsLoading, recommendationData, searchHistory, generatePersonalizedRecommendations, getBasedOnLibraryRecommendations, getTrendingBasedOnHistory]);
 
   const filteredRecommendations = recommendations.filter(section => {
     if (activeFilter === 'all') return true;

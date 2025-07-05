@@ -50,8 +50,9 @@ export const useRecommendations = () => {
     
     const recommendations: Book[] = [];
     
-    // Mock recommendations based on user data
-    if (popularGenres.includes('Science Fiction')) {
+    // Always provide some recommendations, even for new users
+    // Mock recommendations based on user data or general popular books
+    if (popularGenres.includes('Science Fiction') || recentQueries.some(q => q.toLowerCase().includes('science'))) {
       recommendations.push({
         id: 'rec-sf-1',
         title: 'The Expanse: Leviathan Wakes',
@@ -67,7 +68,7 @@ export const useRecommendations = () => {
       });
     }
 
-    if (popularGenres.includes('Fantasy')) {
+    if (popularGenres.includes('Fantasy') || recentQueries.some(q => q.toLowerCase().includes('fantasy'))) {
       recommendations.push({
         id: 'rec-fantasy-1',
         title: 'The Name of the Wind',
@@ -100,6 +101,37 @@ export const useRecommendations = () => {
       });
     }
 
+    // If no specific preferences detected, provide general popular recommendations
+    if (recommendations.length === 0) {
+      recommendations.push(
+        {
+          id: 'rec-popular-1',
+          title: 'The Seven Husbands of Evelyn Hugo',
+          authors: ['Taylor Jenkins Reid'],
+          description: 'A reclusive Hollywood icon finally tells her story to a young journalist.',
+          coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=450&fit=crop',
+          publishedDate: '2017',
+          categories: ['Historical Fiction', 'Romance'],
+          rating: 4.5,
+          ratingCount: 89000,
+          googleBooksUrl: 'https://books.google.com/books?id=example',
+          recommendation: 'A captivating tale that\'s perfect for discovering your reading preferences!'
+        },
+        {
+          id: 'rec-popular-2',
+          title: 'Atomic Habits',
+          authors: ['James Clear'],
+          description: 'An easy and proven way to build good habits and break bad ones.',
+          coverImage: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=300&h=450&fit=crop',
+          publishedDate: '2018',
+          categories: ['Self-Help', 'Psychology'],
+          rating: 4.7,
+          ratingCount: 125000,
+          googleBooksUrl: 'https://books.google.com/books?id=example',
+          recommendation: 'Start your reading journey with this highly-rated and practical guide!'
+        }
+      );
+    }
     return recommendations;
   };
 

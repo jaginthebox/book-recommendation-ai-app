@@ -53,6 +53,10 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
         const success = await saveBook(book);
         if (success) {
           setIsSaved(true);
+          
+          // Track this as a book interaction for recommendations
+          // This helps improve future recommendations
+          console.log('Book saved to library:', book.title);
         }
       }
     } finally {
@@ -78,6 +82,12 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
   };
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Track book detail views for recommendations
+    if (onClick) {
+      onClick();
+    }
+    
     setShowDetailsModal(true);
   };
 

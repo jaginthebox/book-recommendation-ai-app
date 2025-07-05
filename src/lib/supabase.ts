@@ -315,6 +315,64 @@ export class DatabaseService {
     }
   }
 
+  // Enhanced recommendation data with reading sessions
+  static async getEnhancedRecommendationData(userId: string) {
+    try {
+      const [searchHistory, preferences, readingSessions, savedBooks] = await Promise.all([
+        this.getUserSearchHistory(userId, 30),
+        this.getUserPreferences(userId),
+        this.getReadingSessions(userId, undefined, 100),
+        this.getUserSavedBooks(userId)
+      ]);
+
+      const recentQueries = searchHistory.slice(0, 10).map(s => s.query);
+      const clickedBooks = searchHistory.flatMap(s => s.clicked_books);
+      const popularGenres = await this.getPopularGenres(userId);
+
+      // Analyze reading patterns
+      const readingPatterns = {
+        totalSessions: readingSessions.length,
+        totalPagesRead: readingSessions.reduce((sum, s) => sum + (s.pages_read || 0), 0),
+        avgSessionDuration: readingSessions.length > 0 
+          ? readingSessions.reduce((sum, s) => sum + (s.session_duration || 0), 0) / readingSessions.length
+          : 0,
+        recentActivity: readingSessions.filter(s => {
+          const sessionDate = new Date(s.session_date);
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return sessionDate > weekAgo;
+        }).length
+      };
+
+      return {
+        recentQueries,
+        clickedBooks,
+        popularGenres,
+        preferences,
+        searchHistory,
+        readingSessions,
+        savedBooks,
+        readingPatterns
+      };
+    } catch (error) {
+      console.error('Error getting enhanced recommendation data:', error);
+      return {
+        recentQueries: [],
+        clickedBooks: [],
+        popularGenres: [],
+        preferences: null,
+        searchHistory: [],
+        readingSessions: [],
+        savedBooks: [],
+        readingPatterns: {
+          totalSessions: 0,
+          totalPagesRead: 0,
+          avgSessionDuration: 0,
+          recentActivity: 0
+        }
+      };
+    }
+  }
   // Library Management Methods
   static async saveBookToLibrary(
     userId: string,
@@ -502,6 +560,10 @@ export class DatabaseService {
         .single();
 
       if (error) throw error;
+      
+      // Update user preferences based on reading activity
+      await this.updateUserPreferencesFromActivity(userId, bookId, pagesRead);
+      
       return data;
     } catch (error) {
       console.error('Error adding reading session:', error);
@@ -509,6 +571,37 @@ export class DatabaseService {
     }
   }
 
+  // Update user preferences based on reading activity
+  static async updateUserPreferencesFromActivity(
+    userId: string,
+    bookId: string,
+    pagesRead: number
+  ): Promise<void> {
+    try {
+      // Get the book data to extract genres
+      const { data: savedBook } = await supabase
+        .from('saved_books')
+        .select('book_data')
+        .eq('user_id', userId)
+        .eq('book_id', bookId)
+        .single();
+
+      if (savedBook?.book_data?.categories) {
+        const genres = savedBook.book_data.categories;
+        
+        // Update user preferences with these genres
+        const currentPrefs = await this.getUserPreferences(userId);
+        const existingGenres = currentPrefs?.preferred_genres || [];
+        const updatedGenres = [...new Set([...existingGenres, ...genres])];
+        
+        await this.updateUserPreferences(userId, {
+          preferred_genres: updatedGenres
+        });
+      }
+    } catch (error) {
+      console.error('Error updating preferences from activity:', error);
+    }
+  }
   static async getReadingSessions(
     userId: string,
     bookId?: string,
@@ -787,7 +880,7 @@ export class DatabaseService {
   // Library Analytics
   static async getLibraryStats(userId: string) {
     try {
-      const [savedBooksResult, wishlistResult, readingGoalResult] = await Promise.all([
+      const [savedBooksResult, wishlistResult, readingGoalResult, readingSessionsResult] = await Promise.all([
         supabase
         .from('saved_books')
         .select('*')
@@ -796,7 +889,8 @@ export class DatabaseService {
         .from('wishlist')
         .select('*')
         .eq('user_id', userId),
-        this.getUserReadingGoal(userId)
+        this.getUserReadingGoal(userId),
+        this.getReadingSessions(userId, undefined, 100)
       ]);
 
       if (savedBooksResult.error) throw savedBooksResult.error;
@@ -804,6 +898,7 @@ export class DatabaseService {
 
       const books = savedBooksResult.data || [];
       const wishlistItems = wishlistResult.data || [];
+      const readingSessions = readingSessionsResult || [];
       const readBooks = books.filter(book => book.is_read);
       const currentlyReading = books.filter(book => book.status === 'currently_reading');
       const booksWithNotes = books.filter(book => book.notes);
@@ -827,9 +922,9 @@ export class DatabaseService {
         .map(([genre, count]) => ({ genre, count }));
 
       // Calculate reading streak (consecutive days with reading activity)
-      const readingSessions = await this.getReadingSessions(userId, undefined, 30);
+      const recentSessions = readingSessions.slice(0, 30);
       const uniqueReadingDays = new Set(
-        readingSessions.map(session => 
+        recentSessions.map(session => 
           new Date(session.session_date).toDateString()
         )
       );
@@ -859,7 +954,9 @@ export class DatabaseService {
         readingGoal: readingGoalResult,
         readingStreak: currentStreak,
         totalPages: books.reduce((sum, book) => sum + (book.book_data.pageCount || 0), 0),
-        pagesRead: readBooks.reduce((sum, book) => sum + (book.book_data.pageCount || 0), 0)
+        pagesRead: readBooks.reduce((sum, book) => sum + (book.book_data.pageCount || 0), 0),
+        totalReadingSessions: readingSessions.length,
+        totalReadingTime: readingSessions.reduce((sum, session) => sum + (session.session_duration || 0), 0)
       };
     } catch (error) {
       console.error('Error getting library stats:', error);
@@ -876,7 +973,9 @@ export class DatabaseService {
         readingGoal: null,
         readingStreak: 0,
         totalPages: 0,
-        pagesRead: 0
+        pagesRead: 0,
+        totalReadingSessions: 0,
+        totalReadingTime: 0
       };
     }
   }

@@ -12,6 +12,7 @@ interface RecommendationData {
   preferences: any;
   searchHistory: any[];
   savedBooks: SavedBook[];
+  readingSessions: any[];
 }
 
 export const useRecommendations = () => {
@@ -24,7 +25,8 @@ export const useRecommendations = () => {
     popularGenres: [],
     preferences: null,
     searchHistory: [],
-    savedBooks: []
+    savedBooks: [],
+    readingSessions: []
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,7 +41,8 @@ export const useRecommendations = () => {
         popularGenres: [],
         preferences: null,
         searchHistory: [],
-        savedBooks: []
+        savedBooks: [],
+        readingSessions: []
       });
     }
   }, [user, searchHistory]);
@@ -62,10 +65,14 @@ export const useRecommendations = () => {
       // Get reading sessions for more detailed analysis
       const readingSessions = await DatabaseService.getReadingSessions(user.id);
       
+      // Get user preferences for better recommendations
+      const preferences = await DatabaseService.getUserPreferences(user.id);
+      
       setRecommendationData(prev => ({
         ...data,
         savedBooks: savedBooks || [], // Ensure savedBooks is always an array
-        readingSessions: readingSessions || []
+        readingSessions: readingSessions || [],
+        preferences: preferences
       }));
     } catch (error) {
       console.error('Error loading recommendation data:', error);
@@ -75,7 +82,7 @@ export const useRecommendations = () => {
   };
 
   const generatePersonalizedRecommendations = (): Book[] => {
-    const { clickedBooks, popularGenres, recentQueries, savedBooks = [] } = recommendationData;
+    const { clickedBooks, popularGenres, recentQueries, savedBooks = [], readingSessions = [], preferences } = recommendationData;
     
     // Enhanced recommendation algorithm using saved books and search history
     const recommendations: Book[] = [];
@@ -114,6 +121,15 @@ export const useRecommendations = () => {
       ? ratedBooks.reduce((sum, book) => sum + (book.user_rating || 0), 0) / ratedBooks.length
       : 4.0;
     
+    // Analyze reading sessions for reading patterns
+    const totalPagesRead = readingSessions.reduce((sum, session) => sum + (session.pages_read || 0), 0);
+    const avgSessionDuration = readingSessions.length > 0 
+      ? readingSessions.reduce((sum, session) => sum + (session.session_duration || 0), 0) / readingSessions.length
+      : 30;
+    
+    // Get preferred genres from user preferences
+    const preferredGenres = preferences?.preferred_genres || [];
+    
     // Analyze clicked books from search history
     const allClickedBooks = searchHistory.flatMap(search => search.clicked_books || []);
     const clickedGenres = allClickedBooks.flatMap(book => book.categories || []);
@@ -127,7 +143,10 @@ export const useRecommendations = () => {
       .slice(0, 3)
       .map(([genre]) => genre);
     
-    // Generate recommendations based on saved library
+    // Combine all genre preferences
+    const allPreferredGenres = [...new Set([...topSavedGenres, ...topClickedGenres, ...preferredGenres])];
+    
+    // Generate recommendations based on saved library and preferences
     if (topSavedGenres.includes('Science Fiction') || topClickedGenres.includes('Science Fiction') || searchTerms.includes('science')) {
       recommendations.push({
         id: 'rec-sf-1',
@@ -140,7 +159,7 @@ export const useRecommendations = () => {
         rating: 4.2,
         ratingCount: 67000,
         googleBooksUrl: 'https://books.google.com/books?id=example',
-        recommendation: 'Based on your science fiction preferences, this classic explores themes similar to your reading history.'
+        recommendation: `Based on your science fiction preferences and ${readingSessions.length} reading sessions, this classic explores themes similar to your reading history.`
       });
     }
 
@@ -156,8 +175,44 @@ export const useRecommendations = () => {
         rating: 4.3,
         ratingCount: 45000,
         googleBooksUrl: 'https://books.google.com/books?id=example',
-        recommendation: 'Your fantasy preferences suggest you\'ll enjoy this character-driven political fantasy.'
+        recommendation: `Your fantasy preferences and reading patterns (${totalPagesRead} pages read) suggest you'll enjoy this character-driven political fantasy.`
       });
+    }
+
+    // Recommendations based on reading speed and session patterns
+    if (readingSessions.length >= 5) {
+      const isQuickReader = avgSessionDuration < 45 && totalPagesRead > 500;
+      const isDeepReader = avgSessionDuration > 60;
+      
+      if (isQuickReader) {
+        recommendations.push({
+          id: 'rec-quick-reader-1',
+          title: 'Fast-Paced Thrillers',
+          authors: ['Various Authors'],
+          description: `Page-turners perfect for quick readers like you who've read ${totalPagesRead} pages in short sessions.`,
+          coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=450&fit=crop',
+          publishedDate: '2023',
+          categories: ['Thriller', 'Action'],
+          rating: 4.4,
+          ratingCount: 45000,
+          googleBooksUrl: 'https://books.google.com/books?id=example',
+          recommendation: `Your reading pattern shows you prefer quick, engaging reads. These thrillers match your pace perfectly.`
+        });
+      } else if (isDeepReader) {
+        recommendations.push({
+          id: 'rec-deep-reader-1',
+          title: 'Literary Masterpieces',
+          authors: ['Acclaimed Authors'],
+          description: `Complex, rewarding novels for thoughtful readers who spend quality time with books.`,
+          coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=450&fit=crop',
+          publishedDate: '2023',
+          categories: ['Literary Fiction'],
+          rating: 4.6,
+          ratingCount: 35000,
+          googleBooksUrl: 'https://books.google.com/books?id=example',
+          recommendation: `Your longer reading sessions (avg ${Math.round(avgSessionDuration)} min) suggest you appreciate complex narratives.`
+        });
+      }
     }
 
     // Recommendations based on search patterns
@@ -262,7 +317,7 @@ export const useRecommendations = () => {
   };
 
   const getBasedOnLibraryRecommendations = (): Book[] => {
-    const { clickedBooks, savedBooks = [] } = recommendationData;
+    const { clickedBooks, savedBooks = [], readingSessions = [] } = recommendationData;
     
     // Generate recommendations based on saved books, clicked books, and reading sessions
     const recommendations: Book[] = [];
@@ -300,6 +355,15 @@ export const useRecommendations = () => {
           }, 0) / readBooks.length / (1000 * 60 * 60 * 24) // Convert to days
         : 0;
       
+      // Analyze reading sessions for this user
+      const userReadingSessions = readingSessions.filter(session => 
+        savedBooks.some(book => book.book_id === session.book_id)
+      );
+      
+      const totalReadingTime = userReadingSessions.reduce((sum, session) => 
+        sum + (session.session_duration || 0), 0
+      );
+      
       if (topGenre) {
         recommendations.push({
           id: 'rec-library-1',
@@ -312,7 +376,7 @@ export const useRecommendations = () => {
           rating: 4.2,
           ratingCount: 25000,
           googleBooksUrl: 'https://books.google.com/books?id=example',
-          recommendation: `Based on your ${savedBooks.length} saved books and preference for ${topGenre}, with ${readBooks.length} books completed.`
+          recommendation: `Based on your ${savedBooks.length} saved books, ${readingSessions.length} reading sessions (${Math.round(totalReadingTime/60)} hours), and preference for ${topGenre}.`
         });
       }
       
@@ -330,7 +394,7 @@ export const useRecommendations = () => {
           rating: 4.4,
           ratingCount: 35000,
           googleBooksUrl: 'https://books.google.com/books?id=example',
-          recommendation: `Based on your reading habits (${readBooks.length} books completed), these match your ${readingSpeed} reading pace.`
+          recommendation: `Based on your reading habits (${readBooks.length} books completed, ${userReadingSessions.length} sessions), these match your ${readingSpeed} reading pace.`
         });
       }
     }
@@ -339,7 +403,7 @@ export const useRecommendations = () => {
   };
 
   const getTrendingBasedOnHistory = (): Book[] => {
-    const { savedBooks = [], recentQueries = [], popularGenres = [] } = recommendationData;
+    const { savedBooks = [], recentQueries = [], popularGenres = [], readingSessions = [] } = recommendationData;
     
     // Generate trending recommendations based on user's patterns, search history, and current trends
     const recommendations: Book[] = [];
@@ -411,20 +475,29 @@ export const useRecommendations = () => {
     
     // Add recommendations based on reading frequency and patterns
     const readBooks = savedBooks.filter(book => book.is_read);
+    const recentSessions = readingSessions.filter(session => {
+      const sessionDate = new Date(session.session_date);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return sessionDate > weekAgo;
+    });
+    
     if (readBooks.length >= 5) {
       const avgRating = readBooks.reduce((sum, book) => sum + (book.user_rating || 4), 0) / readBooks.length;
+      const isActiveReader = recentSessions.length >= 3;
+      
       recommendations.push({
         id: 'rec-trending-reader-1',
-        title: 'Trending for Active Readers',
+        title: isActiveReader ? 'Trending for Active Readers' : 'Trending for Book Lovers',
         authors: ['Curated Selection'],
-        description: `Trending books perfect for someone who has read ${readBooks.length} books with an average rating of ${avgRating.toFixed(1)} stars.`,
+        description: `Trending books perfect for someone who has read ${readBooks.length} books with an average rating of ${avgRating.toFixed(1)} stars${isActiveReader ? ' and is actively reading' : ''}.`,
         coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=450&fit=crop',
         publishedDate: '2024',
         categories: [topUserGenre || 'Fiction'],
         rating: 4.6,
         ratingCount: 125000,
         googleBooksUrl: 'https://books.google.com/books?id=example',
-        recommendation: `As an active reader with ${readBooks.length} completed books, these trending titles match your reading level and preferences.`
+        recommendation: `As ${isActiveReader ? 'an active' : 'a dedicated'} reader with ${readBooks.length} completed books and ${recentSessions.length} recent sessions, these trending titles match your reading level.`
       });
     }
     

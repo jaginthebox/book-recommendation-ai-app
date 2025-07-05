@@ -7,16 +7,15 @@ import LoadingSpinner from './Common/LoadingSpinner';
 import EmptyState from './Common/EmptyState';
 import RecommendationsPage from './Recommendations/RecommendationsPage';
 import BookCarousel from './Common/BookCarousel';
-import MoodSelector, { Mood } from './SearchInterface/MoodSelector';
 import { useBookSearch } from '../hooks/useBookSearch';
 import { Book } from '../types';
-import { BookOpen, Sparkles, Search, Heart, Target, TrendingUp, Award, Users, Zap, Star, Clock, Globe } from 'lucide-react';
+import { BookOpen, Sparkles, Search, Heart, Target, TrendingUp, Award, Users, Zap, Star, Clock, Globe, ChevronDown, ChevronUp } from 'lucide-react';
 
 function AppContent() {
   const { isLoading, results, error, totalResults, processingTime, hasSearched, searchBooks } = useBookSearch();
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'recommendations' | 'about'>('home');
-  const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
+  const [showMoodSelector, setShowMoodSelector] = useState(false);
 
   const handleSearch = async (query: string) => {
     setCurrentQuery(query);
@@ -302,18 +301,77 @@ function AppContent() {
               </p>
             </div>
             
+            {/* Collapsible Mood Selector */}
+            <div className="mb-6">
+              <div className="text-center">
+                <button
+                  onClick={() => setShowMoodSelector(!showMoodSelector)}
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200 rounded-lg transition-all duration-200 text-indigo-700 hover:text-indigo-800"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span className="font-medium">What's your mood today?</span>
+                  {showMoodSelector ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              
+              {/* Collapsible Mood Content */}
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                showMoodSelector ? 'max-h-96 opacity-100 mt-6' : 'max-h-0 opacity-0'
+              }`}>
+                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100">
+                  <div className="text-center mb-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      Select your reading mood
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Choose how you're feeling to get personalized book recommendations
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {[
+                      { id: 'happy', name: 'Happy', icon: '😊', color: 'from-yellow-400 to-orange-400', query: 'uplifting positive feel-good books' },
+                      { id: 'romantic', name: 'Romantic', icon: '💕', color: 'from-pink-400 to-red-400', query: 'romance love romantic books' },
+                      { id: 'adventurous', name: 'Adventurous', icon: '⚡', color: 'from-blue-400 to-cyan-400', query: 'adventure action thriller books' },
+                      { id: 'thoughtful', name: 'Thoughtful', icon: '🧠', color: 'from-purple-400 to-indigo-400', query: 'philosophical thought-provoking books' },
+                      { id: 'cozy', name: 'Cozy', icon: '☕', color: 'from-amber-400 to-yellow-400', query: 'cozy comfort gentle books' },
+                      { id: 'mysterious', name: 'Mysterious', icon: '🌙', color: 'from-gray-400 to-slate-400', query: 'mystery suspense thriller books' },
+                      { id: 'energetic', name: 'Energetic', icon: '☀️', color: 'from-orange-400 to-red-400', query: 'energetic dynamic action books' },
+                      { id: 'reflective', name: 'Reflective', icon: '🌊', color: 'from-blue-400 to-gray-400', query: 'reflective contemplative books' },
+                      { id: 'inspired', name: 'Inspired', icon: '⭐', color: 'from-yellow-400 to-pink-400', query: 'inspiring motivational books' },
+                      { id: 'emotional', name: 'Emotional', icon: '💙', color: 'from-blue-400 to-purple-400', query: 'emotional touching moving books' }
+                    ].map((mood) => (
+                      <button
+                        key={mood.id}
+                        onClick={() => {
+                          handleSearch(mood.query);
+                          setShowMoodSelector(false);
+                        }}
+                        className="group relative p-4 rounded-xl border-2 border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all duration-200 bg-white"
+                      >
+                        <div className="flex flex-col items-center space-y-2">
+                          <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${mood.color} flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow text-2xl`}>
+                            {mood.icon}
+                          </div>
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-700 transition-colors">
+                            {mood.name}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <SearchBar 
               onSearch={handleSearch} 
               isLoading={isLoading}
             />
-            
-            {/* Mood Selector */}
-            <div className="mt-8">
-              <MoodSelector
-                selectedMood={selectedMood}
-                onMoodSelect={setSelectedMood}
-              />
-            </div>
           </div>
         </div>
 

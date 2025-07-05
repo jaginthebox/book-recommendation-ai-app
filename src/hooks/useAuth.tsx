@@ -131,9 +131,14 @@ export const useAuthProvider = () => {
         email,
         password,
         options: {
+          emailRedirectTo: undefined, // Disable email confirmation
+          captchaToken: undefined,    // Skip captcha
           data: {
-            name: name
-          }
+            name: name,
+            full_name: name
+          },
+          // This tells Supabase to skip email confirmation
+          skipConfirmation: true
         },
       });
 
@@ -142,11 +147,14 @@ export const useAuthProvider = () => {
         if (error.message.includes('User already registered')) {
           throw new Error('User already registered');
         }
+        if (error.message.includes('signup_disabled')) {
+          throw new Error('Registration is currently disabled. Please contact support.');
+        }
         throw error;
       }
 
       if (data.user) {
-        // User is created and should be immediately signed in
+        // User is created and immediately signed in (no email confirmation needed)
         setUser({
           id: data.user.id,
           email: data.user.email || '',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, Sparkles, User, LogOut, Menu, X, Library, Heart, Compass } from 'lucide-react';
+import { BookOpen, Sparkles, User, LogOut, Menu, X, Library, Heart, Compass, Book } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth.tsx';
 import AuthModal from '../Auth/AuthModal';
 
@@ -44,60 +44,71 @@ const Header: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-24">
             {/* Logo Section */}
             <div className="flex items-center space-x-4">
               <button 
                 onClick={() => handleNavigation('')}
                 className="relative group cursor-pointer"
               >
-                <div className="flex items-center space-x-3 p-3 rounded-2xl hover:bg-white hover:bg-opacity-40 transition-all duration-300 hover:shadow-lg">
+                <div className="flex items-center space-x-4 p-3 rounded-2xl hover:bg-white hover:bg-opacity-40 transition-all duration-300 hover:shadow-lg">
                   <div className="relative">
-                    <div className="w-14 h-14 bg-gradient-to-br from-amber-600 via-orange-600 to-red-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-shadow duration-300 border-2 border-white border-opacity-50">
-                      <BookOpen className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-                      <Sparkles className="w-3 h-3 text-white" />
+                    {/* New Logo Design - Stack of Books */}
+                    <div className="relative w-16 h-16">
+                      {/* Base book */}
+                      <div className="absolute bottom-0 left-0 w-14 h-4 bg-gradient-to-r from-amber-600 to-orange-600 rounded-sm shadow-lg transform rotate-1"></div>
+                      {/* Middle book */}
+                      <div className="absolute bottom-2 left-1 w-12 h-4 bg-gradient-to-r from-orange-600 to-red-600 rounded-sm shadow-lg transform -rotate-2"></div>
+                      {/* Top book */}
+                      <div className="absolute bottom-4 left-0.5 w-13 h-4 bg-gradient-to-r from-red-600 to-pink-600 rounded-sm shadow-lg transform rotate-1"></div>
+                      
+                      {/* Sparkle on top */}
+                      <div className="absolute -top-1 right-1 w-6 h-6 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                        <Sparkles className="w-3 h-3 text-white" />
+                      </div>
+                      
+                      {/* Reading bookmark */}
+                      <div className="absolute top-1 right-3 w-1 h-8 bg-gradient-to-b from-yellow-300 to-yellow-500 rounded-full shadow-sm"></div>
                     </div>
                   </div>
                   <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-800 via-orange-800 to-red-800 bg-clip-text text-transparent drop-shadow-sm">
                       Readpop
                     </h1>
-                    <p className="text-xs text-amber-700 font-semibold tracking-wide">AI-Powered Discovery</p>
+                    <p className="text-sm text-amber-700 font-semibold tracking-wide">AI-Powered Discovery</p>
                   </div>
                 </div>
               </button>
             </div>
             
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-2">
+            {/* Desktop Navigation - Made Bigger */}
+            <nav className="hidden md:flex items-center space-x-3">
               <button
                 onClick={() => handleNavigation('')}
-                className="flex items-center space-x-2 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-sm hover:bg-white hover:bg-opacity-40 px-4 py-3 rounded-xl cursor-pointer group"
+                className="flex items-center space-x-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 px-6 py-4 rounded-xl cursor-pointer group"
               >
-                <Compass className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                <Compass className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                 <span>Discover</span>
               </button>
               <button
                 onClick={() => handleNavigation('library')}
-                className="flex items-center space-x-2 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-sm hover:bg-white hover:bg-opacity-40 px-4 py-3 rounded-xl cursor-pointer group"
+                className="flex items-center space-x-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 px-6 py-4 rounded-xl cursor-pointer group"
               >
-                <Library className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <Library className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 <span>My Library</span>
               </button>
               <button
                 onClick={() => handleNavigation('recommendations')}
-                className="flex items-center space-x-2 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-sm hover:bg-white hover:bg-opacity-40 px-4 py-3 rounded-xl cursor-pointer group"
+                className="flex items-center space-x-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 px-6 py-4 rounded-xl cursor-pointer group"
               >
-                <Heart className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 <span>Recommendations</span>
               </button>
               <button
                 onClick={() => handleNavigation('about')}
-                className="flex items-center space-x-2 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-sm hover:bg-white hover:bg-opacity-40 px-4 py-3 rounded-xl cursor-pointer group"
+                className="flex items-center space-x-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 px-6 py-4 rounded-xl cursor-pointer group"
               >
-                <BookOpen className="w-4 h-4 group-hover:rotate-6 transition-transform" />
+                <Book className="w-5 h-5 group-hover:rotate-6 transition-transform" />
                 <span>About</span>
               </button>
             </nav>
@@ -106,18 +117,18 @@ const Header: React.FC = () => {
             <div className="flex items-center space-x-4">
               {user ? (
                 <div className="flex items-center space-x-3">
-                  <div className="hidden md:flex items-center space-x-3 bg-white bg-opacity-30 rounded-2xl px-4 py-2 backdrop-blur-sm border border-white border-opacity-40">
+                  <div className="hidden md:flex items-center space-x-3 bg-white bg-opacity-30 rounded-2xl px-5 py-3 backdrop-blur-sm border border-white border-opacity-40">
                     <div className="text-right">
                       <p className="text-sm font-semibold text-amber-900">Welcome back!</p>
                       <p className="text-xs text-amber-700">{user.email}</p>
                     </div>
-                    <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white border-opacity-50">
+                    <div className="w-11 h-11 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white border-opacity-50">
                       <User className="w-5 h-5 text-white" />
                     </div>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center space-x-2 px-4 py-2 text-sm text-amber-800 hover:text-red-600 transition-colors hover:bg-white hover:bg-opacity-40 rounded-xl font-medium"
+                    className="flex items-center space-x-2 px-5 py-3 text-sm text-amber-800 hover:text-red-600 transition-colors hover:bg-white hover:bg-opacity-40 rounded-xl font-medium"
                   >
                     <LogOut className="w-4 h-4" />
                     <span className="hidden md:inline">Logout</span>
@@ -127,13 +138,13 @@ const Header: React.FC = () => {
                 <div className="hidden md:flex items-center space-x-3">
                   <button
                     onClick={() => handleAuthClick('login')}
-                    className="px-5 py-2 text-sm font-semibold text-amber-800 hover:text-orange-800 transition-colors hover:bg-white hover:bg-opacity-40 rounded-xl"
+                    className="px-6 py-3 text-base font-semibold text-amber-800 hover:text-orange-800 transition-colors hover:bg-white hover:bg-opacity-40 rounded-xl"
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => handleAuthClick('register')}
-                    className="px-6 py-2 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white text-sm font-semibold rounded-xl hover:from-amber-700 hover:via-orange-700 hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-white border-opacity-30"
+                    className="px-7 py-3 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white text-base font-semibold rounded-xl hover:from-amber-700 hover:via-orange-700 hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-white border-opacity-30"
                   >
                     Get Started
                   </button>
@@ -156,30 +167,30 @@ const Header: React.FC = () => {
               <div className="flex flex-col space-y-2">
                 <button
                   onClick={() => handleNavigation('')}
-                  className="flex items-center space-x-3 px-4 py-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
+                  className="flex items-center space-x-3 px-4 py-4 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
                 >
                   <Compass className="w-5 h-5" />
                   <span>Discover</span>
                 </button>
                 <button
                   onClick={() => handleNavigation('library')}
-                  className="flex items-center space-x-3 px-4 py-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
+                  className="flex items-center space-x-3 px-4 py-4 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
                 >
                   <Library className="w-5 h-5" />
                   <span>My Library</span>
                 </button>
                 <button
                   onClick={() => handleNavigation('recommendations')}
-                  className="flex items-center space-x-3 px-4 py-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
+                  className="flex items-center space-x-3 px-4 py-4 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
                 >
                   <Heart className="w-5 h-5" />
                   <span>Recommendations</span>
                 </button>
                 <button
                   onClick={() => handleNavigation('about')}
-                  className="flex items-center space-x-3 px-4 py-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
+                  className="flex items-center space-x-3 px-4 py-4 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
                 >
-                  <BookOpen className="w-5 h-5" />
+                  <Book className="w-5 h-5" />
                   <span>About</span>
                 </button>
                 
@@ -206,13 +217,13 @@ const Header: React.FC = () => {
                   <div className="px-4 py-3 border-t border-amber-200 space-y-3 mx-2 mt-2">
                     <button
                       onClick={() => handleAuthClick('login')}
-                      className="w-full px-4 py-3 text-sm font-semibold text-amber-800 border-2 border-amber-300 rounded-xl hover:bg-white hover:bg-opacity-40 transition-colors"
+                      className="w-full px-4 py-3 text-base font-semibold text-amber-800 border-2 border-amber-300 rounded-xl hover:bg-white hover:bg-opacity-40 transition-colors"
                     >
                       Sign In
                     </button>
                     <button
                       onClick={() => handleAuthClick('register')}
-                      className="w-full px-4 py-3 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white text-sm font-semibold rounded-xl hover:from-amber-700 hover:via-orange-700 hover:to-red-700 transition-all duration-200 shadow-lg"
+                      className="w-full px-4 py-3 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white text-base font-semibold rounded-xl hover:from-amber-700 hover:via-orange-700 hover:to-red-700 transition-all duration-200 shadow-lg"
                     >
                       Get Started
                     </button>

@@ -534,8 +534,9 @@ const LibraryPage: React.FC = () => {
           <>
             {filteredBooks.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {filteredBooks.map((savedBook) => (
+                {filteredBooks.map((savedBook) => {
                   const StatusIcon = getStatusIcon(savedBook.status);
+                  return (
                   <div key={savedBook.id} className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 hover:shadow-2xl transition-all duration-300">
                     <div className="flex space-x-4">
                       {/* Book Cover */}
@@ -719,7 +720,8 @@ const LibraryPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="bg-white rounded-2xl shadow-xl p-12 border border-gray-100 text-center">

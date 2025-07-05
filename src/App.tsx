@@ -22,11 +22,6 @@ function App() {
     await searchBooks({ query });
   };
 
-  const handleBookClick = (book: Book) => {
-    // Record the book click for recommendations
-    handleBookClick(book);
-    console.log('Book clicked:', book);
-  };
 
   const handleTryExample = (example: string) => {
     handleSearch(example);

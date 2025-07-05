@@ -29,11 +29,30 @@ class AuthService {
   private users: Array<{ id: string; email: string; password: string; name: string }> = [];
   private currentUser: User | null = null;
 
+  private isValidUUID(str: string): boolean {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  }
+
   constructor() {
     // Load user from localStorage on initialization
     const savedUser = localStorage.getItem('bookmind_user');
     if (savedUser) {
-      this.currentUser = JSON.parse(savedUser);
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        // Validate that the user has a proper UUID
+        if (parsedUser && parsedUser.id && this.isValidUUID(parsedUser.id)) {
+          this.currentUser = parsedUser;
+        } else {
+          // Clear invalid user data from localStorage
+          localStorage.removeItem('bookmind_user');
+          this.currentUser = null;
+        }
+      } catch (error) {
+        // Clear corrupted user data from localStorage
+        localStorage.removeItem('bookmind_user');
+        this.currentUser = null;
+      }
     }
   }
 

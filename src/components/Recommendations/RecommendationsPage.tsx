@@ -26,6 +26,70 @@ import MoodSelector, { Mood } from '../SearchInterface/MoodSelector';
 import { useRecommendations } from '../../hooks/useRecommendations';
 import { useSearchHistory } from '../../hooks/useSearchHistory';
 
+// Static curated recommendations for non-authenticated users and fallback
+const staticCuratedRecommendations: RecommendationSection[] = [
+  {
+    id: 'staff-picks',
+    title: 'Staff Picks',
+    description: 'Curated selections from our literary experts',
+    icon: Crown,
+    type: 'curated',
+    books: [
+      {
+        id: 'staff-1',
+        title: 'Lessons in Chemistry',
+        authors: ['Bonnie Garmus'],
+        description: 'A brilliant scientist\'s unconventional approach to cooking and life in 1960s California.',
+        coverImage: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=300&h=450&fit=crop',
+        publishedDate: '2022',
+        pageCount: 400,
+        categories: ['Historical Fiction', 'Humor'],
+        rating: 4.6,
+        ratingCount: 45000,
+        googleBooksUrl: 'https://books.google.com/books?id=example4',
+        recommendation: 'Our editor\'s choice for best debut novel of the year!'
+      },
+      {
+        id: 'staff-2',
+        title: 'The Seven Husbands of Evelyn Hugo',
+        authors: ['Taylor Jenkins Reid'],
+        description: 'A reclusive Hollywood icon finally tells her story to a young journalist.',
+        coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=450&fit=crop',
+        publishedDate: '2017',
+        pageCount: 400,
+        categories: ['Historical Fiction', 'Romance'],
+        rating: 4.5,
+        ratingCount: 38000,
+        googleBooksUrl: 'https://books.google.com/books?id=example5',
+        recommendation: 'A captivating tale of love, ambition, and secrets!'
+      }
+    ]
+  },
+  {
+    id: 'trending',
+    title: 'Trending Now',
+    description: 'Popular books everyone is talking about',
+    icon: TrendingUp,
+    type: 'community',
+    books: [
+      {
+        id: 'trending-1',
+        title: 'Fourth Wing',
+        authors: ['Rebecca Yarros'],
+        description: 'A thrilling fantasy about dragon riders and war college.',
+        coverImage: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=450&fit=crop',
+        publishedDate: '2023',
+        pageCount: 500,
+        categories: ['Fantasy', 'Romance'],
+        rating: 4.7,
+        ratingCount: 52000,
+        googleBooksUrl: 'https://books.google.com/books?id=example6',
+        recommendation: 'The fantasy romance taking the world by storm!'
+      }
+    ]
+  }
+];
+
 interface RecommendationSection {
   id: string;
   title: string;
@@ -51,7 +115,7 @@ const RecommendationsPage: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Mock recommendation data
-  const [recommendations, setRecommendations] = useState<RecommendationSection[]>([]);
+  const [recommendations, setRecommendations] = useState<RecommendationSection[]>(staticCuratedRecommendations);
 
   // Generate recommendations based on user data
   useEffect(() => {
@@ -92,26 +156,14 @@ const RecommendationsPage: React.FC = () => {
           description: 'Curated selections from our literary experts',
           icon: Crown,
           type: 'curated',
-          books: [
-            {
-              id: 'staff-1',
-              title: 'Lessons in Chemistry',
-              authors: ['Bonnie Garmus'],
-              description: 'A brilliant scientist\'s unconventional approach to cooking and life in 1960s California.',
-              coverImage: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=300&h=450&fit=crop',
-              publishedDate: '2022',
-              pageCount: 400,
-              categories: ['Historical Fiction', 'Humor'],
-              rating: 4.6,
-              ratingCount: 45000,
-              googleBooksUrl: 'https://books.google.com/books?id=example4',
-              recommendation: 'Our editor\'s choice for best debut novel of the year!'
-            }
-          ]
+          books: staticCuratedRecommendations[0].books
         }
       ];
 
       setRecommendations(newRecommendations);
+    } else {
+      // Ensure recommendations are set to static data when user is not authenticated
+      setRecommendations(staticCuratedRecommendations);
     }
   }, [user, recommendationsLoading, recommendationData, searchHistory]);
 
@@ -124,10 +176,7 @@ const RecommendationsPage: React.FC = () => {
     setIsRefreshing(true);
     // Reload recommendation data
     if (user) {
-      await Promise.all([
-        loadRecommendationData(),
-        new Promise(resolve => setTimeout(resolve, 1000)) // Minimum loading time for UX
-      ]);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Minimum loading time for UX
     }
     setIsRefreshing(false);
   };

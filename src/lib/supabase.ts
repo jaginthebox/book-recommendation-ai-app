@@ -301,8 +301,7 @@ export class DatabaseService {
         clickedBooks,
         popularGenres,
         preferences,
-        searchHistory,
-        savedBooks: savedBooks || []
+        searchHistory
       };
     } catch (error) {
       console.error('Error getting recommendation data:', error);
@@ -311,8 +310,7 @@ export class DatabaseService {
         clickedBooks: [],
         popularGenres: [],
         preferences: null,
-        searchHistory: [],
-        savedBooks: []
+        searchHistory: []
       };
     }
   }

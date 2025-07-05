@@ -42,6 +42,7 @@ const LibraryPage: React.FC = () => {
   const { 
     savedBooks, 
     wishlistItems,
+    libraryStats,
     isLoading, 
     error,
     loadLibrary,
@@ -122,6 +123,15 @@ const LibraryPage: React.FC = () => {
     await setReadingGoal(currentYear, targetBooks, targetPages);
     setShowGoalModal(false);
   };
+
+  const handleToggleRead = async (bookId: string) => {
+    const book = savedBooks?.find(b => b.book_id === bookId);
+    if (book) {
+      const newStatus = book.is_read ? 'want_to_read' : 'read';
+      await updateBookStatus(bookId, newStatus);
+    }
+  };
+
   const handleRefresh = () => {
     if (activeTab === 'wishlist') {
       loadWishlist({
@@ -317,7 +327,7 @@ const LibraryPage: React.FC = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Avg Rating</p>
                 <p className="text-3xl font-bold text-gray-900">
-                <div className="text-xs text-white text-opacity-80">2025 Goal</div>
+                  {libraryStats.averageRating.toFixed(1)}
                 </p>
                 {libraryStats.averageRating > 0 && (
                   <div className="flex items-center">
@@ -380,8 +390,8 @@ const LibraryPage: React.FC = () => {
 
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <Trophy className="w-5 h-5 mr-2 text-yellow-600" />
-              2025 Reading Goal
+              <Flame className="w-5 h-5 mr-2 text-orange-600" />
+              Reading Streak
             </h3>
             <div className="flex items-center space-x-4">
               <div className="text-center">

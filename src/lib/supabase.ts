@@ -128,10 +128,10 @@ export class DatabaseService {
         .from('user_preferences')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .limit(1);
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
-      return data;
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
     } catch (error) {
       console.error('Error fetching user preferences:', error);
       return null;

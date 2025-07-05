@@ -11,6 +11,10 @@ interface CarouselBook {
   badge?: 'bestseller' | 'trending' | 'award' | 'new';
 }
 
+interface BookCarouselProps {
+  onGenreClick?: (genre: string) => void;
+}
+
 const featuredBooks: CarouselBook[] = [
   {
     id: '1',
@@ -86,11 +90,11 @@ const featuredBooks: CarouselBook[] = [
   }
 ];
 
-const BookCarousel: React.FC = () => {
+const BookCarousel: React.FC<BookCarouselProps> = ({ onGenreClick }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  const booksPerView = 4;
+  const booksPerView = 6;
   const maxIndex = Math.max(0, featuredBooks.length - booksPerView);
 
   useEffect(() => {
@@ -111,12 +115,20 @@ const BookCarousel: React.FC = () => {
     setCurrentIndex(prev => (prev <= 0 ? maxIndex : prev - 1));
   };
 
+  const handleGenreClick = (category: string) => {
+    if (onGenreClick) {
+      // Create a search query based on the genre
+      const searchQuery = `popular ${category.toLowerCase()} books`;
+      onGenreClick(searchQuery);
+    }
+  };
+
   const getBadgeIcon = (badge: string) => {
     switch (badge) {
-      case 'bestseller': return <TrendingUp className="w-3 h-3" />;
-      case 'trending': return <TrendingUp className="w-3 h-3" />;
-      case 'award': return <Award className="w-3 h-3" />;
-      case 'new': return <Clock className="w-3 h-3" />;
+      case 'bestseller': return <TrendingUp className="w-2 h-2" />;
+      case 'trending': return <TrendingUp className="w-2 h-2" />;
+      case 'award': return <Award className="w-2 h-2" />;
+      case 'new': return <Clock className="w-2 h-2" />;
       default: return null;
     }
   };
@@ -133,28 +145,28 @@ const BookCarousel: React.FC = () => {
 
   return (
     <div 
-      className="relative bg-white rounded-lg shadow-sm p-2 border border-gray-100"
+      className="relative bg-white rounded-lg shadow-sm p-1.5 border border-gray-100"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1.5">
         <div>
-          <h3 className="text-sm font-bold text-gray-900 mb-0.5">Trending Books</h3>
+          <h3 className="text-xs font-bold text-gray-900 mb-0.5">Trending Books</h3>
           <p className="text-xs text-gray-600">Discover what everyone's reading</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           <button
             onClick={prevSlide}
             className="p-0.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
           >
-            <ChevronLeft className="w-2.5 h-2.5 text-gray-600" />
+            <ChevronLeft className="w-2 h-2 text-gray-600" />
           </button>
           <button
             onClick={nextSlide}
             className="p-0.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
           >
-            <ChevronRight className="w-2.5 h-2.5 text-gray-600" />
+            <ChevronRight className="w-2 h-2 text-gray-600" />
           </button>
         </div>
       </div>
@@ -166,7 +178,7 @@ const BookCarousel: React.FC = () => {
           style={{ transform: `translateX(-${currentIndex * (100 / booksPerView)}%)` }}
         >
           {featuredBooks.map((book) => (
-            <div key={book.id} className="flex-shrink-0 w-1/4 px-0.5">
+            <div key={book.id} className="flex-shrink-0 w-1/6 px-0.5">
               <div className="group cursor-pointer">
                 <div className="relative mb-1">
                   <div className="aspect-[2/3] bg-gray-100 rounded-sm overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-300">
@@ -187,7 +199,7 @@ const BookCarousel: React.FC = () => {
 
                   {/* Rating */}
                   <div className="absolute bottom-0.5 right-0.5 bg-black bg-opacity-70 text-white px-0.5 py-0.5 rounded-full text-xs flex items-center space-x-0.5">
-                    <Star className="w-2 h-2 fill-yellow-400 text-yellow-400" />
+                    <Star className="w-1.5 h-1.5 fill-yellow-400 text-yellow-400" />
                     <span className="text-xs">{book.rating}</span>
                   </div>
                 </div>
@@ -197,7 +209,13 @@ const BookCarousel: React.FC = () => {
                     {book.title}
                   </h4>
                   <p className="text-xs text-gray-600 mb-0.5 truncate">{book.author}</p>
-                  <p className="text-xs text-indigo-600 font-medium truncate">{book.category}</p>
+                  <button
+                    onClick={() => handleGenreClick(book.category)}
+                    className="text-xs text-indigo-600 font-medium truncate hover:text-indigo-800 hover:underline transition-colors cursor-pointer"
+                    title={`Search for ${book.category} books`}
+                  >
+                    {book.category}
+                  </button>
                 </div>
               </div>
             </div>
@@ -206,12 +224,12 @@ const BookCarousel: React.FC = () => {
       </div>
 
       {/* Dots Indicator */}
-      <div className="flex justify-center space-x-0.5 mt-1.5">
+      <div className="flex justify-center space-x-0.5 mt-1">
         {Array.from({ length: maxIndex + 1 }).map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-1 h-1 rounded-full transition-colors ${
+            className={`w-0.5 h-0.5 rounded-full transition-colors ${
               index === currentIndex ? 'bg-indigo-600' : 'bg-gray-300'
             }`}
           />

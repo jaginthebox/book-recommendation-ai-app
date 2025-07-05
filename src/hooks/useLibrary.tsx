@@ -380,8 +380,12 @@ const RecommendationsPage: React.FC = () => {
               </p>
               <button 
                 onClick={() => window.location.hash = ''}
-          )
-          }
+                className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                Discover Books
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Quick Discovery Tools */}

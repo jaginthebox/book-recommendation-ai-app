@@ -40,27 +40,31 @@ const Header: React.FC = () => {
                 onClick={() => handleNavigation('')}
                 className="flex items-center space-x-3 group"
               >
-                {/* Real Book Logo */}
+                {/* NextRead Logo */}
                 <div className="relative">
-                  {/* Book spine layers for 3D effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-700 to-amber-800 rounded-r-md transform translate-x-1 translate-y-1 w-10 h-10"></div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-600 to-amber-700 rounded-r-md transform translate-x-0.5 translate-y-0.5 w-10 h-10"></div>
+                  {/* Enhanced book design with gradient layers */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-red-400 rounded-lg transform translate-x-1 translate-y-1 w-12 h-10 opacity-60"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-pink-400 rounded-lg transform translate-x-0.5 translate-y-0.5 w-12 h-10 opacity-80"></div>
                   
-                  {/* Main book cover */}
-                  <div className="relative w-10 h-10 bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 rounded-md shadow-lg flex items-center justify-center border border-indigo-800">
-                    {/* Book pages effect */}
-                    <div className="absolute right-0 top-1 bottom-1 w-1 bg-white opacity-30 rounded-r-sm"></div>
-                    <div className="absolute right-0.5 top-1.5 bottom-1.5 w-0.5 bg-white opacity-20 rounded-r-sm"></div>
+                  {/* Main book cover with NextRead styling */}
+                  <div className="relative w-12 h-10 bg-gradient-to-br from-teal-500 via-cyan-500 to-blue-500 rounded-lg shadow-xl flex items-center justify-center border border-teal-600 group-hover:shadow-2xl transition-all duration-300">
+                    {/* Enhanced book pages effect */}
+                    <div className="absolute right-0 top-1 bottom-1 w-1.5 bg-white opacity-40 rounded-r-md"></div>
+                    <div className="absolute right-0.5 top-1.5 bottom-1.5 w-1 bg-white opacity-30 rounded-r-md"></div>
+                    <div className="absolute right-1 top-2 bottom-2 w-0.5 bg-white opacity-20 rounded-r-sm"></div>
                     
-                    {/* Book icon */}
-                    <BookOpen className="w-5 h-5 text-white" />
+                    {/* Stylized book icon */}
+                    <BookOpen className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300" />
+                    
+                    {/* Subtle shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white to-transparent opacity-20 rounded-lg"></div>
                   </div>
                 </div>
                 
                 {/* Brand Text */}
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
-                    Readpop
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent group-hover:from-teal-700 group-hover:via-cyan-700 group-hover:to-blue-700 transition-all duration-300" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
+                    NextRead
                   </h1>
                   <p className="text-xs text-gray-600 font-medium uppercase tracking-wide">
                     AI Discovery

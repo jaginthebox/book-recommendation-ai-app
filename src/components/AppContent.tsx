@@ -327,7 +327,7 @@ function AppContent() {
               <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
-              <span className="text-lg font-semibold text-gray-900">Readpop</span>
+              <span className="text-lg font-semibold text-gray-900">NextRead</span>
             </div>
             <p className="text-gray-700 mb-2">
               Powered by AI semantic search • Built with React, TypeScript, and Tailwind CSS

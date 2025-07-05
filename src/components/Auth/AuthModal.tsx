@@ -115,7 +115,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
               <Sparkles className="w-4 h-4 absolute -top-1 -right-1 text-yellow-300" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">Readpop</h2>
+              <h2 className="text-2xl font-bold">NextRead</h2>
               <p className="text-indigo-100 text-sm">AI-Powered Discovery</p>
             </div>
           </div>

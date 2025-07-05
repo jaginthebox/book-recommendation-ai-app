@@ -6,15 +6,33 @@ interface SearchBarProps {
   onSearch: (query: string) => void;
   isLoading: boolean;
   placeholder?: string;
+  searchValue?: string;
+  onSearchValueChange?: (value: string) => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ 
   onSearch, 
   isLoading, 
-  placeholder = "Tell us what you're looking for..." 
+  placeholder = "Tell us what you're looking for...",
+  searchValue,
+  onSearchValueChange
 }) => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(searchValue || '');
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
+
+  // Update local query when searchValue prop changes
+  React.useEffect(() => {
+    if (searchValue !== undefined) {
+      setQuery(searchValue);
+    }
+  }, [searchValue]);
+
+  const handleInputChange = (value: string) => {
+    setQuery(value);
+    if (onSearchValueChange) {
+      onSearchValueChange(value);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +73,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           <input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             placeholder={placeholder}
             disabled={isLoading}
             className="w-full pl-12 pr-16 py-4 text-lg border border-gray-200 rounded-2xl 
@@ -88,7 +106,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             <button
               key={index}
               onClick={() => {
-                setQuery(example);
+                handleInputChange(example);
                 setSelectedMood(null);
               }}
               disabled={isLoading}

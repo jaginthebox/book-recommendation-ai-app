@@ -19,7 +19,7 @@ import {
   ChevronRight,
   RefreshCw
 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth.tsx';
+import { useAuth } from '../useAuth.tsx';
 import { Book } from '../../types';
 import BookCard from '../BookResults/BookCard';
 import MoodSelector, { Mood } from '../SearchInterface/MoodSelector';

@@ -60,7 +60,23 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
       }
       onClose();
     } catch (error) {
-      setErrors({ submit: error instanceof Error ? error.message : 'An error occurred' });
+      let errorMessage = 'An error occurred';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = mode === 'login' 
+            ? 'Invalid email or password. Please check your credentials or sign up if you don\'t have an account.'
+            : 'Unable to create account. Please try again.';
+        } else if (error.message.includes('User already registered')) {
+          errorMessage = 'An account with this email already exists. Please sign in instead.';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Please check your email and click the confirmation link before signing in.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setErrors({ submit: errorMessage });
     }
   };
 

@@ -70,7 +70,13 @@ export const useAuthProvider = () => {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Provide more specific error messages
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid login credentials');
+        }
+        throw error;
+      }
 
       if (data.user) {
         setUser({
@@ -97,7 +103,13 @@ export const useAuthProvider = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Provide more specific error messages
+        if (error.message.includes('User already registered')) {
+          throw new Error('User already registered');
+        }
+        throw error;
+      }
 
       if (data.user) {
         setUser({

@@ -24,7 +24,7 @@ import { Book } from '../../types';
 import BookCard from '../components/BookResults/BookCard';
 import MoodSelector, { Mood } from '../components/SearchInterface/MoodSelector';
 import { useRecommendations } from './useRecommendations';
-import { useSearchHistory } from '../../hooks/useSearchHistory';
+import { useSearchHistory } from './useSearchHistory';
 
 // Static curated recommendations for non-authenticated users and fallback
 const staticCuratedRecommendations: RecommendationSection[] = [

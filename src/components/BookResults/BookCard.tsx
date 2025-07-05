@@ -12,7 +12,7 @@ interface BookCardProps {
 
 const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
   const { user } = useAuth();
-  const { saveBook, addToWishlist, isBookSaved, isInWishlist } = useLibrary();
+  const { saveBook, addToWishlist, isBookSaved, isBookInWishlist } = useLibrary();
   const [imageError, setImageError] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isInWishlistState, setIsInWishlistState] = useState(false);
@@ -28,13 +28,13 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
     if (user) {
       Promise.all([
         isBookSaved(book.id),
-        isInWishlist(book.id)
+        isBookInWishlist(book.id)
       ]).then(([saved, wishlist]) => {
         setIsSaved(saved);
         setIsInWishlistState(wishlist);
       });
     }
-  }, [user, book.id, isBookSaved, isInWishlist]);
+  }, [user, book.id, isBookSaved, isBookInWishlist]);
 
   const handleImageError = () => {
     setImageError(true);

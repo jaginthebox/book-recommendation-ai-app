@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DatabaseService, SavedBook } from '../lib/supabase';
-import { useAuth } from './useAuth.tsx';
+import { useAuth } from './useAuth';
 import { Book } from '../types';
 import { useLibrary } from './useLibrary';
 import { useSearchHistory } from './useSearchHistory';

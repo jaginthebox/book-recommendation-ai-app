@@ -28,7 +28,7 @@ import {
   Calendar as CalendarIcon,
   ArrowRight
 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth.tsx';
+import { useAuth } from '../../hooks/useAuth';
 import { useLibrary } from '../../hooks/useLibrary';
 import { SavedBook } from '../../lib/supabase';
 import NotesModal from './NotesModal';
@@ -50,11 +50,7 @@ const LibraryPage: React.FC = () => {
     updateBookStatus,
     saveNotesAndRating,
     setReadingGoal,
-    getLibraryStats
   } = useLibrary();
-  
-  // Get library stats by calling the function
-  const libraryStats = getLibraryStats();
   
   const [activeTab, setActiveTab] = useState<'all' | 'want_to_read' | 'currently_reading' | 'read' | 'notes' | 'wishlist'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,7 +62,7 @@ const LibraryPage: React.FC = () => {
   const [showGoalModal, setShowGoalModal] = useState(false);
 
   // Filter books based on active tab and filters
-  const filteredBooks = savedBooks.filter(book => {
+  const filteredBooks = (savedBooks || []).filter(book => {
     // Tab filtering
     if (activeTab === 'currently_reading' && book.status !== 'currently_reading') return false;
     if (activeTab === 'read' && !book.is_read) return false;
@@ -539,7 +535,7 @@ const LibraryPage: React.FC = () => {
           <>
             {filteredBooks.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {filteredBooks.map((savedBook) => {
+                {(filteredBooks || []).map((savedBook) => {
                   const StatusIcon = getStatusIcon(savedBook.status);
                   return (
                   <div key={savedBook.id} className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 hover:shadow-2xl transition-all duration-300">

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Star, Calendar, BookOpen, ExternalLink, Sparkles, Heart, Plus, Bookmark } from 'lucide-react';
 import { Book } from '../../types';
 import { useLibrary } from '../../hooks/useLibrary';
-import { useAuth } from '../../hooks/useAuth.tsx';
+import { useAuth } from '../../hooks/useAuth';
 import BookDetailsModal from './BookDetailsModal';
 
 interface BookCardProps {
@@ -12,7 +12,7 @@ interface BookCardProps {
 
 const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
   const { user } = useAuth();
-  const { saveBook, addToWishlist, isBookSaved, isBookInWishlist } = useLibrary();
+  const { saveBook, addToWishlist, isBookSaved, isInWishlist } = useLibrary();
   const [imageError, setImageError] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isInWishlistState, setIsInWishlistState] = useState(false);
@@ -28,13 +28,13 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
     if (user) {
       Promise.all([
         isBookSaved(book.id),
-        isBookInWishlist(book.id)
+        isInWishlist(book.id)
       ]).then(([saved, wishlist]) => {
         setIsSaved(saved);
         setIsInWishlistState(wishlist);
       });
     }
-  }, [user, book.id, isBookSaved, isBookInWishlist]);
+  }, [user, book.id, isBookSaved, isInWishlist]);
 
   const handleImageError = () => {
     setImageError(true);

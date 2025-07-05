@@ -7,10 +7,8 @@ import {
   ExternalLink, 
   Heart, 
   Plus, 
-  User,
   DollarSign,
   ShoppingCart,
-  Download,
   Eye,
   Share2
 } from 'lucide-react';
@@ -57,7 +55,7 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, onClose }) =>
   useEffect(() => {
     const fetchPricing = async () => {
       setIsLoadingPricing(true);
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const mockPricing: BookPricing = {
         retailPrice: {
@@ -127,33 +125,32 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, onClose }) =>
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
-        {/* Compact Header */}
-        <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 text-white">
+      {/* Much smaller, compact modal */}
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[70vh] overflow-hidden">
+        {/* Minimal header */}
+        <div className="relative bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-3 text-white">
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
+            className="absolute top-2 right-2 p-1 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
           
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-              <BookOpen className="w-8 h-8 text-white" />
-            </div>
+          <div className="flex items-center space-x-2">
+            <BookOpen className="w-5 h-5" />
             <div>
-              <h1 className="text-xl font-bold">Book Details</h1>
-              <p className="text-indigo-100 text-sm">Complete information and pricing</p>
+              <h1 className="text-lg font-bold">Book Details</h1>
+              <p className="text-indigo-100 text-xs">Complete information and pricing</p>
             </div>
           </div>
         </div>
 
-        {/* Horizontal Content Layout */}
-        <div className="p-6">
-          <div className="flex space-x-6">
-            {/* Book Cover - Left Side */}
+        {/* Compact horizontal content */}
+        <div className="p-4">
+          <div className="flex space-x-4">
+            {/* Small book cover */}
             <div className="flex-shrink-0">
-              <div className="w-32 h-44 bg-gray-100 rounded-xl overflow-hidden shadow-lg">
+              <div className="w-20 h-28 bg-gray-100 rounded-lg overflow-hidden shadow-md">
                 {!imageError ? (
                   <img
                     src={book.coverImage}
@@ -163,178 +160,124 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, onClose }) =>
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-100">
-                    <BookOpen className="w-12 h-12 text-indigo-400" />
+                    <BookOpen className="w-6 h-6 text-indigo-400" />
                   </div>
                 )}
               </div>
             </div>
             
-            {/* Main Content - Center */}
+            {/* Main content - condensed */}
             <div className="flex-1 min-w-0">
-              {/* Title and Basic Info */}
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2 line-clamp-2">{book.title}</h2>
-                <p className="text-lg text-gray-700 mb-3">by {formatAuthors(book.authors)}</p>
+              <h2 className="text-lg font-bold text-gray-900 mb-1 line-clamp-2">{book.title}</h2>
+              <p className="text-sm text-gray-600 mb-2">by {formatAuthors(book.authors)}</p>
+              
+              <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-3">
+                {book.publishedDate && (
+                  <div className="flex items-center space-x-1">
+                    <Calendar className="w-3 h-3" />
+                    <span>{book.publishedDate}</span>
+                  </div>
+                )}
                 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
-                  {book.publishedDate && (
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{book.publishedDate}</span>
-                    </div>
-                  )}
-                  
-                  {book.rating && (
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span>{book.rating.toFixed(1)}</span>
-                      {book.ratingCount && (
-                        <span className="text-gray-500">({book.ratingCount.toLocaleString()})</span>
-                      )}
-                    </div>
-                  )}
+                {book.rating && (
+                  <div className="flex items-center space-x-1">
+                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <span>{book.rating.toFixed(1)}</span>
+                  </div>
+                )}
 
-                  {book.pageCount && (
-                    <div className="flex items-center space-x-1">
-                      <BookOpen className="w-4 h-4" />
-                      <span>{book.pageCount} pages</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Categories */}
-                {book.categories && book.categories.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {book.categories.slice(0, 3).map((category, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-full"
-                      >
-                        {category}
-                      </span>
-                    ))}
+                {book.pageCount && (
+                  <div className="flex items-center space-x-1">
+                    <BookOpen className="w-3 h-3" />
+                    <span>{book.pageCount}p</span>
                   </div>
                 )}
               </div>
 
-              {/* Description */}
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                <p className="text-gray-700 text-sm leading-relaxed line-clamp-4">
-                  {book.description || 'No description available for this book.'}
-                </p>
-              </div>
-
-              {/* AI Recommendation */}
-              {book.recommendation && (
-                <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-200 mb-4">
-                  <h4 className="text-sm font-semibold text-indigo-900 mb-2 flex items-center">
-                    <Star className="w-4 h-4 mr-1 text-indigo-600" />
-                    AI Recommendation
-                  </h4>
-                  <p className="text-sm text-indigo-800 leading-relaxed">
-                    {book.recommendation}
-                  </p>
+              {/* Categories - compact */}
+              {book.categories && book.categories.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {book.categories.slice(0, 2).map((category, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 text-xs bg-indigo-100 text-indigo-600 rounded-full"
+                    >
+                      {category}
+                    </span>
+                  ))}
                 </div>
               )}
+
+              {/* Truncated description */}
+              <p className="text-sm text-gray-700 line-clamp-3 mb-3">
+                {book.description || 'No description available for this book.'}
+              </p>
             </div>
 
-            {/* Pricing & Actions - Right Side */}
-            <div className="flex-shrink-0 w-64">
-              <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2 text-green-600" />
-                  Pricing
-                </h3>
+            {/* Compact pricing sidebar */}
+            <div className="flex-shrink-0 w-32">
+              <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                <div className="flex items-center space-x-1 mb-2">
+                  <DollarSign className="w-4 h-4 text-green-600" />
+                  <h3 className="text-sm font-semibold text-gray-900">Price</h3>
+                </div>
                 
                 {isLoadingPricing ? (
-                  <div className="space-y-2">
-                    <div className="animate-pulse">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                      <div className="h-6 bg-gray-200 rounded w-1/2 mb-3"></div>
-                      <div className="h-8 bg-gray-200 rounded"></div>
+                  <div className="animate-pulse">
+                    <div className="h-3 bg-gray-200 rounded w-3/4 mb-1"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                ) : pricing?.retailPrice ? (
+                  <div className="text-center">
+                    {pricing.listPrice && pricing.listPrice.amount > pricing.retailPrice.amount && (
+                      <span className="text-xs text-gray-500 line-through block">
+                        {formatPrice(pricing.listPrice)}
+                      </span>
+                    )}
+                    <div className="text-lg font-bold text-green-600">
+                      {formatPrice(pricing.retailPrice)}
                     </div>
                   </div>
-                ) : pricing ? (
-                  <div className="space-y-3">
-                    {pricing.retailPrice && (
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm text-gray-600">Digital Edition</span>
-                          {pricing.isEbook && (
-                            <div className="flex items-center space-x-1 text-xs text-green-600">
-                              <Download className="w-3 h-3" />
-                              <span>eBook</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          {pricing.listPrice && pricing.listPrice.amount > pricing.retailPrice.amount && (
-                            <span className="text-sm text-gray-500 line-through block">
-                              {formatPrice(pricing.listPrice)}
-                            </span>
-                          )}
-                          <div className="text-xl font-bold text-green-600">
-                            {formatPrice(pricing.retailPrice)}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Buy Button */}
-                    {pricing.buyLink && (
-                      <a
-                        href={pricing.buyLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full bg-green-600 text-white py-2 px-3 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 text-sm"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                        <span>Buy Now</span>
-                      </a>
-                    )}
-
-                    {/* Sample Button */}
-                    {pricing.sampleUrl && (
-                      <a
-                        href={pricing.sampleUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full bg-gray-200 text-gray-700 py-2 px-3 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center justify-center space-x-2 text-sm"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span>Preview</span>
-                      </a>
-                    )}
-                  </div>
                 ) : (
-                  <p className="text-sm text-gray-600">Pricing unavailable</p>
+                  <p className="text-xs text-gray-600">Price unavailable</p>
                 )}
               </div>
 
-              {/* Action Buttons */}
+              {/* Compact action buttons */}
               <div className="space-y-2">
+                {pricing?.buyLink && (
+                  <a
+                    href={pricing.buyLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-green-600 text-white py-2 px-2 rounded-lg text-xs font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-1"
+                  >
+                    <ShoppingCart className="w-3 h-3" />
+                    <span>Buy</span>
+                  </a>
+                )}
+
                 {user && (
                   <button
                     onClick={handleSaveBook}
                     disabled={isSaving || isSaved}
-                    className={`w-full py-2 px-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 text-sm ${
+                    className={`w-full py-2 px-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center space-x-1 ${
                       isSaved
                         ? 'bg-red-100 text-red-700 cursor-default'
                         : 'bg-indigo-600 text-white hover:bg-indigo-700'
                     }`}
                   >
                     {isSaving ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     ) : isSaved ? (
                       <>
-                        <Heart className="w-4 h-4 fill-current" />
+                        <Heart className="w-3 h-3 fill-current" />
                         <span>Saved</span>
                       </>
                     ) : (
                       <>
-                        <Plus className="w-4 h-4" />
-                        <span>Save to Library</span>
+                        <Plus className="w-3 h-3" />
+                        <span>Save</span>
                       </>
                     )}
                   </button>
@@ -344,24 +287,11 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, onClose }) =>
                   href={book.googleBooksUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-blue-600 text-white py-2 px-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm"
+                  className="w-full bg-blue-600 text-white py-2 px-2 rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1"
                 >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>Google Books</span>
+                  <ExternalLink className="w-3 h-3" />
+                  <span>Google</span>
                 </a>
-
-                <button className="w-full bg-gray-200 text-gray-700 py-2 px-3 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center justify-center space-x-2 text-sm">
-                  <Share2 className="w-4 h-4" />
-                  <span>Share</span>
-                </button>
-              </div>
-
-              {/* Additional Info */}
-              <div className="bg-blue-50 rounded-lg p-3 mt-4 border border-blue-200">
-                <h4 className="font-medium text-blue-900 mb-1 text-sm">💡 Tip</h4>
-                <p className="text-xs text-blue-800">
-                  Save books to get better AI recommendations!
-                </p>
               </div>
             </div>
           </div>

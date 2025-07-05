@@ -6,7 +6,7 @@ import BookGrid from './BookResults/BookGrid';
 import LoadingSpinner from './Common/LoadingSpinner';
 import EmptyState from './Common/EmptyState';
 import RecommendationsPage from './Recommendations/RecommendationsPage';
-import GradientMoodMenu from './SearchInterface/GradientMoodMenu';
+import CompactMoodSelector from './SearchInterface/CompactMoodSelector';
 import { useBookSearch } from '../hooks/useBookSearch';
 import { Book } from '../types';
 import { BookOpen, Sparkles, Search, Heart, Target, TrendingUp, Award, Users, Zap, Star, Clock, Globe, ChevronDown, ChevronUp } from 'lucide-react';
@@ -15,21 +15,26 @@ function AppContent() {
   const { isLoading, results, error, totalResults, processingTime, hasSearched, searchBooks } = useBookSearch();
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'recommendations' | 'about'>('home');
-  const [showMoodSelector, setShowMoodSelector] = useState(false);
   const [searchInput, setSearchInput] = useState('');
+  const [selectedMood, setSelectedMood] = useState<any>(null);
 
   const handleSearch = async (query: string) => {
     setCurrentQuery(query);
     setSearchInput(query);
-    await searchBooks({ query });
+    
+    // Combine search input with mood modifier if mood is selected
+    let finalQuery = query;
+    if (selectedMood) {
+      finalQuery = `${query} ${selectedMood.searchModifier}`;
+    }
+    
+    await searchBooks({ query: finalQuery });
   };
 
-  const handleMoodSelect = (moodQuery: string, moodName: string) => {
-    // Add mood to search input instead of immediately searching
-    const newSearchText = searchInput ? `${searchInput} ${moodQuery}` : moodQuery;
-    setSearchInput(newSearchText);
-    setShowMoodSelector(false);
+  const handleMoodSelect = (mood: any) => {
+    setSelectedMood(mood);
   };
+  
   const handleBookClick = (book: Book) => {
     // TODO: Implement book detail modal or navigation
     console.log('Book clicked:', book);
@@ -306,20 +311,6 @@ function AppContent() {
             </div>
           </div>
 
-          {/* Mood Selection Section */}
-          <div className="mb-8">
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
-              <GradientMoodMenu 
-                onMoodSelect={(mood) => {
-                  if (mood) {
-                    const newSearchText = searchInput ? `${searchInput} ${mood.searchModifier}` : mood.searchModifier;
-                    setSearchInput(newSearchText);
-                  }
-                }}
-              />
-            </div>
-          </div>
-
           {/* Search Section */}
           <div className="mb-8">
             <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
@@ -330,6 +321,14 @@ function AppContent() {
                 <p className="text-gray-600 max-w-2xl mx-auto">
                   Tell us what you're looking for, and our AI will find exactly what matches your taste.
                 </p>
+              </div>
+              
+              {/* Compact Mood Selector */}
+              <div className="mb-6">
+                <CompactMoodSelector 
+                  selectedMood={selectedMood}
+                  onMoodSelect={handleMoodSelect}
+                />
               </div>
               
               <SearchBar 

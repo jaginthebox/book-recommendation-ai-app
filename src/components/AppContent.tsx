@@ -6,7 +6,7 @@ import BookGrid from './BookResults/BookGrid';
 import LoadingSpinner from './Common/LoadingSpinner';
 import EmptyState from './Common/EmptyState';
 import RecommendationsPage from './Recommendations/RecommendationsPage';
-import FlowerMenu from './SearchInterface/FlowerMenu';
+import GradientMoodMenu from './SearchInterface/GradientMoodMenu';
 import { useBookSearch } from '../hooks/useBookSearch';
 import { Book } from '../types';
 import { BookOpen, Sparkles, Search, Heart, Target, TrendingUp, Award, Users, Zap, Star, Clock, Globe, ChevronDown, ChevronUp } from 'lucide-react';
@@ -309,7 +309,7 @@ function AppContent() {
           {/* Mood Selection Section */}
           <div className="mb-8">
             <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
-              <FlowerMenu 
+              <GradientMoodMenu 
                 onMoodSelect={(mood) => {
                   if (mood) {
                     const newSearchText = searchInput ? `${searchInput} ${mood.searchModifier}` : mood.searchModifier;

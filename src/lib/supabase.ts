@@ -301,7 +301,8 @@ export class DatabaseService {
         clickedBooks,
         popularGenres,
         preferences,
-        searchHistory
+        searchHistory,
+        savedBooks: savedBooks || []
       };
     } catch (error) {
       console.error('Error getting recommendation data:', error);
@@ -310,7 +311,8 @@ export class DatabaseService {
         clickedBooks: [],
         popularGenres: [],
         preferences: null,
-        searchHistory: []
+        searchHistory: [],
+        savedBooks: []
       };
     }
   }
@@ -725,11 +727,10 @@ export class DatabaseService {
         .from('reading_goals')
         .select('*')
         .eq('user_id', userId)
-        .eq('year', targetYear)
-        .single();
+        .eq('year', targetYear);
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
-      return data;
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
     } catch (error) {
       console.error('Error fetching reading goal:', error);
       return null;
@@ -743,16 +744,39 @@ export class DatabaseService {
     targetPages?: number
   ): Promise<ReadingGoal | null> {
     try {
-      const { data, error } = await supabase
-        .from('reading_goals')
-        .upsert({
-          user_id: userId,
-          year,
-          target_books: targetBooks,
-          target_pages: targetPages
-        })
-        .select()
-        .single();
+      // Check if a goal already exists for this user and year
+      const existingGoal = await this.getUserReadingGoal(userId, year);
+      
+      let data, error;
+      
+      if (existingGoal) {
+        // Update existing goal
+        const result = await supabase
+          .from('reading_goals')
+          .update({
+            target_books: targetBooks,
+            target_pages: targetPages
+          })
+          .eq('id', existingGoal.id)
+          .select()
+          .single();
+        data = result.data;
+        error = result.error;
+      } else {
+        // Create new goal
+        const result = await supabase
+          .from('reading_goals')
+          .insert({
+            user_id: userId,
+            year,
+            target_books: targetBooks,
+            target_pages: targetPages
+          })
+          .select()
+          .single();
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) throw error;
       return data;
@@ -823,6 +847,7 @@ export class DatabaseService {
           break;
         }
       }
+      
       return {
         totalBooks: books.length,
         readBooks: readBooks.length,
@@ -858,3 +883,4 @@ export class DatabaseService {
     }
   }
 }
+        this.getUserSavedBooks(userId)

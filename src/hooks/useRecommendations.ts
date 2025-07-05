@@ -46,7 +46,10 @@ export const useRecommendations = () => {
     setIsLoading(true);
     try {
       const data = await DatabaseService.getRecommendationData(user.id);
-      setRecommendationData(data);
+      setRecommendationData(prev => ({
+        ...data,
+        savedBooks: savedBooks || [] // Ensure savedBooks is always an array
+      }));
     } catch (error) {
       console.error('Error loading recommendation data:', error);
     } finally {
@@ -55,13 +58,13 @@ export const useRecommendations = () => {
   };
 
   const generatePersonalizedRecommendations = (): Book[] => {
-    const { clickedBooks, popularGenres, recentQueries, savedBooks } = recommendationData;
+    const { clickedBooks, popularGenres, recentQueries, savedBooks = [] } = recommendationData;
     
     // Enhanced recommendation algorithm using saved books data
     const recommendations: Book[] = [];
     
     // Get genres from saved books
-    const savedGenres = savedBooks.flatMap(book => book.book_data.categories);
+    const savedGenres = savedBooks.flatMap(book => book.book_data.categories || []);
     const genreCount = savedGenres.reduce((acc, genre) => {
       acc[genre] = (acc[genre] || 0) + 1;
       return acc;
@@ -73,7 +76,7 @@ export const useRecommendations = () => {
       .map(([genre]) => genre);
     
     // Get authors from saved books
-    const savedAuthors = savedBooks.flatMap(book => book.book_data.authors);
+    const savedAuthors = savedBooks.flatMap(book => book.book_data.authors || []);
     const authorCount = savedAuthors.reduce((acc, author) => {
       acc[author] = (acc[author] || 0) + 1;
       return acc;
@@ -192,7 +195,7 @@ export const useRecommendations = () => {
   };
 
   const getBasedOnLibraryRecommendations = (): Book[] => {
-    const { clickedBooks, savedBooks } = recommendationData;
+    const { clickedBooks, savedBooks = [] } = recommendationData;
     
     // Generate recommendations based on saved books and clicked books
     const recommendations: Book[] = [];
@@ -200,7 +203,7 @@ export const useRecommendations = () => {
     // Combine saved books and clicked books for analysis
     const allBooks = [
       ...savedBooks.map(book => book.book_data),
-      ...clickedBooks
+      ...(clickedBooks || [])
     ];
     
     if (allBooks.length > 0) {
@@ -263,13 +266,13 @@ export const useRecommendations = () => {
   };
 
   const getTrendingBasedOnHistory = (): Book[] => {
-    const { savedBooks, recentQueries, popularGenres } = recommendationData;
+    const { savedBooks = [], recentQueries = [], popularGenres = [] } = recommendationData;
     
     // Generate trending recommendations based on user's patterns and current trends
     const recommendations: Book[] = [];
     
     // Get user's genre preferences
-    const userGenres = savedBooks.flatMap(book => book.book_data.categories);
+    const userGenres = savedBooks.flatMap(book => book.book_data.categories || []);
     const combinedGenres = [...userGenres, ...popularGenres];
     const genreCount = combinedGenres.reduce((acc, genre) => {
       acc[genre] = (acc[genre] || 0) + 1;

@@ -48,10 +48,16 @@ function App() {
     // Listen for hash changes
     window.addEventListener('hashchange', handleHashChange);
     
+    // Also listen for popstate events (back/forward buttons)
+    window.addEventListener('popstate', handleHashChange);
+    
     // Check initial hash
     handleHashChange();
 
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
   }, []);
 
   return (

@@ -21,19 +21,15 @@ const Header: React.FC = () => {
 
   const handleNavigation = (hash: string) => {
     console.log('Navigating to:', hash); // Debug log
-    if (hash === '' || hash === '#') {
+    if (hash === '') {
       // For home page, remove hash completely
-      if (window.location.hash) {
-        window.history.pushState('', document.title, window.location.pathname + window.location.search);
-      }
+      window.history.pushState('', document.title, window.location.pathname + window.location.search);
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
     } else {
       // For other pages, set the hash
       window.location.hash = hash;
     }
     setShowMobileMenu(false);
-    
-    // Trigger a manual hash change event to ensure App.tsx picks it up
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
   };
 
   return (
@@ -95,34 +91,38 @@ const Header: React.FC = () => {
             
             {/* Desktop Navigation - Made Bigger */}
             <nav className="hidden md:flex items-center space-x-3">
-              <button
+              <a
+                href="#"
                 onClick={() => handleNavigation('')}
                 className="flex items-center space-x-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 px-6 py-4 rounded-xl cursor-pointer group"
               >
                 <Compass className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                 <span>Discover</span>
-              </button>
-              <button
+              </a>
+              <a
+                href="#library"
                 onClick={() => handleNavigation('#library')}
                 className="flex items-center space-x-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 px-6 py-4 rounded-xl cursor-pointer group"
               >
                 <Library className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 <span>My Library</span>
-              </button>
-              <button
+              </a>
+              <a
+                href="#recommendations"
                 onClick={() => handleNavigation('#recommendations')}
                 className="flex items-center space-x-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 px-6 py-4 rounded-xl cursor-pointer group"
               >
                 <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 <span>Recommendations</span>
-              </button>
-              <button
+              </a>
+              <a
+                href="#about"
                 onClick={() => handleNavigation('#about')}
                 className="flex items-center space-x-3 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 px-6 py-4 rounded-xl cursor-pointer group"
               >
                 <Book className="w-5 h-5 group-hover:rotate-6 transition-transform" />
                 <span>About</span>
-              </button>
+              </a>
             </nav>
 
             {/* User Section */}
@@ -177,34 +177,38 @@ const Header: React.FC = () => {
           {showMobileMenu && (
             <div className="md:hidden border-t border-amber-200 py-4 bg-white bg-opacity-20 backdrop-blur-sm rounded-b-2xl mx-4 mb-4">
               <div className="flex flex-col space-y-2">
-                <button
+                <a
+                  href="#"
                   onClick={() => handleNavigation('')}
                   className="flex items-center space-x-3 px-4 py-4 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
                 >
                   <Compass className="w-5 h-5" />
                   <span>Discover</span>
-                </button>
-                <button
+                </a>
+                <a
+                  href="#library"
                   onClick={() => handleNavigation('#library')}
                   className="flex items-center space-x-3 px-4 py-4 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
                 >
                   <Library className="w-5 h-5" />
                   <span>My Library</span>
-                </button>
-                <button
+                </a>
+                <a
+                  href="#recommendations"
                   onClick={() => handleNavigation('#recommendations')}
                   className="flex items-center space-x-3 px-4 py-4 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
                 >
                   <Heart className="w-5 h-5" />
                   <span>Recommendations</span>
-                </button>
-                <button
+                </a>
+                <a
+                  href="#about"
                   onClick={() => handleNavigation('#about')}
                   className="flex items-center space-x-3 px-4 py-4 text-amber-800 hover:text-orange-800 transition-colors font-semibold text-base hover:bg-white hover:bg-opacity-40 rounded-xl mx-2"
                 >
                   <Book className="w-5 h-5" />
                   <span>About</span>
-                </button>
+                </a>
                 
                 {user ? (
                   <div className="px-4 py-3 border-t border-amber-200 mx-2 mt-2">

@@ -346,7 +346,7 @@ const LibraryPage: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900 flex items-center">
                 <Trophy className="w-5 h-5 mr-2 text-yellow-600" />
-                2024 Reading Goal
+                2025 Reading Goal
               </h3>
               <button
                 onClick={() => setShowGoalModal(true)}

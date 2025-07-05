@@ -21,8 +21,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from './useAuth.tsx';
 import { Book } from '../../types';
-import BookCard from '../BookResults/BookCard';
-import MoodSelector, { Mood } from '../SearchInterface/MoodSelector';
+import BookCard from '../components/BookResults/BookCard';
+import MoodSelector, { Mood } from '../components/SearchInterface/MoodSelector';
 import { useRecommendations } from '../../hooks/useRecommendations';
 import { useSearchHistory } from '../../hooks/useSearchHistory';
 

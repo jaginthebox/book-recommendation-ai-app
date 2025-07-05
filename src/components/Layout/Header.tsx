@@ -52,16 +52,16 @@ const Header: React.FC = () => {
             
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#" className="text-white text-opacity-90 hover:text-white transition-colors font-medium text-sm hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded-lg">
+              <a href="#" onClick={(e) => { e.preventDefault(); window.location.hash = ''; }} className="text-white text-opacity-90 hover:text-white transition-colors font-medium text-sm hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded-lg cursor-pointer">
                 Discover
               </a>
-              <a href="#library" className="text-white text-opacity-90 hover:text-white transition-colors font-medium text-sm hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded-lg">
+              <a href="#library" onClick={(e) => { e.preventDefault(); window.location.hash = 'library'; }} className="text-white text-opacity-90 hover:text-white transition-colors font-medium text-sm hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded-lg cursor-pointer">
                 My Library
               </a>
-              <a href="#" className="text-white text-opacity-90 hover:text-white transition-colors font-medium text-sm hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded-lg">
+              <a href="#recommendations" onClick={(e) => { e.preventDefault(); window.location.hash = 'recommendations'; }} className="text-white text-opacity-90 hover:text-white transition-colors font-medium text-sm hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded-lg cursor-pointer">
                 Recommendations
               </a>
-              <a href="#" className="text-white text-opacity-90 hover:text-white transition-colors font-medium text-sm hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded-lg">
+              <a href="#about" onClick={(e) => { e.preventDefault(); window.location.hash = 'about'; }} className="text-white text-opacity-90 hover:text-white transition-colors font-medium text-sm hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded-lg cursor-pointer">
                 About
               </a>
             </nav>
@@ -118,16 +118,16 @@ const Header: React.FC = () => {
           {showMobileMenu && (
             <div className="md:hidden border-t border-white border-opacity-20 py-4 bg-black bg-opacity-10 backdrop-blur-sm">
               <div className="flex flex-col space-y-3">
-                <a href="#" className="px-4 py-2 text-white text-opacity-90 hover:text-white transition-colors font-medium hover:bg-white hover:bg-opacity-10 rounded-lg mx-4">
+                <a href="#" onClick={(e) => { e.preventDefault(); window.location.hash = ''; setShowMobileMenu(false); }} className="px-4 py-2 text-white text-opacity-90 hover:text-white transition-colors font-medium hover:bg-white hover:bg-opacity-10 rounded-lg mx-4 cursor-pointer">
                   Discover
                 </a>
-                <a href="#library" className="px-4 py-2 text-white text-opacity-90 hover:text-white transition-colors font-medium hover:bg-white hover:bg-opacity-10 rounded-lg mx-4">
+                <a href="#library" onClick={(e) => { e.preventDefault(); window.location.hash = 'library'; setShowMobileMenu(false); }} className="px-4 py-2 text-white text-opacity-90 hover:text-white transition-colors font-medium hover:bg-white hover:bg-opacity-10 rounded-lg mx-4 cursor-pointer">
                   My Library
                 </a>
-                <a href="#" className="px-4 py-2 text-white text-opacity-90 hover:text-white transition-colors font-medium hover:bg-white hover:bg-opacity-10 rounded-lg mx-4">
+                <a href="#recommendations" onClick={(e) => { e.preventDefault(); window.location.hash = 'recommendations'; setShowMobileMenu(false); }} className="px-4 py-2 text-white text-opacity-90 hover:text-white transition-colors font-medium hover:bg-white hover:bg-opacity-10 rounded-lg mx-4 cursor-pointer">
                   Recommendations
                 </a>
-                <a href="#" className="px-4 py-2 text-white text-opacity-90 hover:text-white transition-colors font-medium hover:bg-white hover:bg-opacity-10 rounded-lg mx-4">
+                <a href="#about" onClick={(e) => { e.preventDefault(); window.location.hash = 'about'; setShowMobileMenu(false); }} className="px-4 py-2 text-white text-opacity-90 hover:text-white transition-colors font-medium hover:bg-white hover:bg-opacity-10 rounded-lg mx-4 cursor-pointer">
                   About
                 </a>
                 

@@ -31,6 +31,25 @@ export const useAuthProvider = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Handle auth state changes and URL fragments
+    const handleAuthStateChange = async () => {
+      // Check for auth errors in URL
+      const urlParams = new URLSearchParams(window.location.hash.substring(1));
+      const error = urlParams.get('error');
+      const errorDescription = urlParams.get('error_description');
+      
+      if (error) {
+        console.error('Auth error from URL:', error, errorDescription);
+        // Clear the error from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Show user-friendly error message
+        if (error === 'access_denied' && errorDescription?.includes('expired')) {
+          alert('The email confirmation link has expired. Please request a new one by trying to sign in again.');
+        }
+      }
+    };
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -46,7 +65,7 @@ export const useAuthProvider = () => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser({
           id: session.user.id,
@@ -57,7 +76,19 @@ export const useAuthProvider = () => {
         setUser(null);
       }
       setIsLoading(false);
+      
+      // Handle specific auth events
+      if (event === 'SIGNED_IN') {
+        console.log('User signed in successfully');
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed');
+      } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+      }
     });
+
+    // Check for auth errors on component mount
+    handleAuthStateChange();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -100,6 +131,7 @@ export const useAuthProvider = () => {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}`,
           data: {
             name: name,
             full_name: name,

@@ -71,12 +71,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
           errorMessage = 'An account with this email already exists. Please sign in instead.';
         } else if (error.message.includes('Email not confirmed')) {
           errorMessage = 'Please check your email and click the confirmation link before signing in.';
+        } else if (error.message.includes('signup_disabled')) {
+          errorMessage = 'New registrations are currently disabled. Please contact support.';
+        } else if (error.message.includes('email_address_invalid')) {
+          errorMessage = 'Please enter a valid email address.';
+        } else if (error.message.includes('password')) {
+          errorMessage = 'Password must be at least 6 characters long.';
         } else if (error.message.includes('Invalid login credentials')) {
           errorMessage = mode === 'login' 
             ? 'Invalid email or password. Please check your credentials.'
             : 'Unable to create account. Please try again.';
-        } else if (error.message.includes('signup_disabled')) {
-          errorMessage = 'New registrations are currently disabled. Please contact support.';
         } else {
           errorMessage = error.message;
         }

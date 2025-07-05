@@ -219,220 +219,223 @@ function AppContent() {
         </div>
       ) : (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Engaging Banner - Moved Higher */}
-        <div className="mb-8">
-          <div className="relative overflow-hidden rounded-2xl p-8 sm:p-12 border border-slate-200 shadow-xl">
-            {/* Background Image */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=600&fit=crop&crop=center&auto=enhance&sat=20&con=25&sharp=10')`,
-              }}
-            ></div>
-            
-            {/* Very light overlay to keep books visible */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900/25 via-indigo-900/20 to-blue-900/25"></div>
-            
-            {/* Subtle floating book accents - minimal to not interfere with real books */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-6 left-8 w-6 h-8 bg-amber-200 rounded-sm shadow-sm transform rotate-12"></div>
-              <div className="absolute top-12 right-16 w-5 h-7 bg-emerald-200 rounded-sm shadow-sm transform -rotate-8"></div>
-              <div className="absolute bottom-8 left-20 w-7 h-9 bg-rose-200 rounded-sm shadow-sm transform rotate-15"></div>
-              <div className="absolute bottom-6 right-12 w-4 h-6 bg-blue-200 rounded-sm shadow-sm transform -rotate-10"></div>
-            </div>
-            
-            <div className="relative z-10 text-center text-white">
-              <div className="flex items-center justify-center space-x-4 mb-6">
-                {/* Reader silhouettes */}
-                <div className="hidden sm:flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
-                    <div className="w-4 h-4 bg-white rounded-full opacity-90"></div>
-                  </div>
-                  <div className="w-6 h-6 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
-                    <div className="w-3 h-3 bg-white rounded-full opacity-90"></div>
-                  </div>
-                </div>
-                
-                {/* Central book icon */}
-                <div className="w-16 h-16 bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-400 rounded-2xl flex items-center justify-center shadow-2xl border-2 border-white/20">
-                  <BookOpen className="w-8 h-8 text-white drop-shadow-xl" />
-                </div>
-                
-                {/* More reader silhouettes */}
-                <div className="hidden sm:flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
-                    <div className="w-3 h-3 bg-white rounded-full opacity-90"></div>
-                  </div>
-                  <div className="w-8 h-8 bg-gradient-to-br from-violet-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
-                    <div className="w-4 h-4 bg-white rounded-full opacity-90"></div>
-                  </div>
-                </div>
+          {/* Engaging Banner - Moved Higher */}
+          <div className="mb-8">
+            <div className="relative overflow-hidden rounded-2xl p-8 sm:p-12 border border-slate-200 shadow-xl">
+              {/* Background Image */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                style={{
+                  backgroundImage: `url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=600&fit=crop&crop=center&auto=enhance&sat=20&con=25&sharp=10')`,
+                }}
+              ></div>
+              
+              {/* Very light overlay to keep books visible */}
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-900/25 via-indigo-900/20 to-blue-900/25"></div>
+              
+              {/* Subtle floating book accents - minimal to not interfere with real books */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-6 left-8 w-6 h-8 bg-amber-200 rounded-sm shadow-sm transform rotate-12"></div>
+                <div className="absolute top-12 right-16 w-5 h-7 bg-emerald-200 rounded-sm shadow-sm transform -rotate-8"></div>
+                <div className="absolute bottom-8 left-20 w-7 h-9 bg-rose-200 rounded-sm shadow-sm transform rotate-15"></div>
+                <div className="absolute bottom-6 right-12 w-4 h-6 bg-blue-200 rounded-sm shadow-sm transform -rotate-10"></div>
               </div>
               
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 drop-shadow-xl">
-                Discover Your Perfect
-                <span className="text-amber-200"> Literary Journey</span>
-              </h2>
-              
-              <p className="text-lg sm:text-xl text-gray-50 max-w-3xl mx-auto mb-6 leading-relaxed drop-shadow-lg">
-                From timeless classics to contemporary masterpieces, from thrilling adventures to profound insights—
-                <span className="font-semibold text-amber-100"> find books that speak to your soul</span> with our AI-powered recommendations.
-              </p>
-              
-              <div className="flex flex-wrap justify-center gap-4 text-sm">
-                <div className="flex items-center space-x-2 bg-white bg-opacity-25 backdrop-blur-sm px-4 py-2 rounded-full border border-white border-opacity-40 shadow-lg">
-                  <Sparkles className="w-4 h-4 text-amber-200" />
-                  <span className="text-white font-medium">Personalized Recommendations</span>
-                </div>
-                <div className="flex items-center space-x-2 bg-white bg-opacity-25 backdrop-blur-sm px-4 py-2 rounded-full border border-white border-opacity-40 shadow-lg">
-                  <Heart className="w-4 h-4 text-pink-300" />
-                  <span className="text-white font-medium">Curated Collections</span>
-                </div>
-                <div className="flex items-center space-x-2 bg-white bg-opacity-25 backdrop-blur-sm px-4 py-2 rounded-full border border-white border-opacity-40 shadow-lg">
-                  <TrendingUp className="w-4 h-4 text-emerald-300" />
-                  <span className="text-white font-medium">Trending Discoveries</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Search Section - Bento Style */}
-        <div className="mb-8">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
-            {/* Search Header */}
-            <div className="text-center mb-6">
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                What are you in the mood to read?
-              </h3>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Describe your perfect book, and our AI will find exactly what you're looking for.
-              </p>
-            </div>
-            
-            {/* Collapsible Mood Selector */}
-            <div className="mb-6">
-              <div className="text-center">
-                <button
-                  onClick={() => setShowMoodSelector(!showMoodSelector)}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200 rounded-lg transition-all duration-200 text-indigo-700 hover:text-indigo-800"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span className="font-medium">What's your mood today?</span>
-                  {showMoodSelector ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-              
-              {/* Collapsible Mood Content */}
-              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                showMoodSelector ? 'max-h-96 opacity-100 mt-6' : 'max-h-0 opacity-0'
-              }`}>
-                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100">
-                  <div className="text-center mb-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                      Select your reading mood
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Choose how you're feeling to get personalized book recommendations
-                    </p>
+              <div className="relative z-10 text-center text-white">
+                <div className="flex items-center justify-center space-x-4 mb-6">
+                  {/* Reader silhouettes */}
+                  <div className="hidden sm:flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                      <div className="w-4 h-4 bg-white rounded-full opacity-90"></div>
+                    </div>
+                    <div className="w-6 h-6 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
+                      <div className="w-3 h-3 bg-white rounded-full opacity-90"></div>
+                    </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                    {[
-                      { id: 'happy', name: 'Happy', icon: '😊', color: 'from-yellow-400 to-orange-400', query: 'uplifting positive feel-good books' },
-                      { id: 'romantic', name: 'Romantic', icon: '💕', color: 'from-pink-400 to-red-400', query: 'romance love romantic books' },
-                      { id: 'adventurous', name: 'Adventurous', icon: '⚡', color: 'from-blue-400 to-cyan-400', query: 'adventure action thriller books' },
-                      { id: 'thoughtful', name: 'Thoughtful', icon: '🧠', color: 'from-purple-400 to-indigo-400', query: 'philosophical thought-provoking books' },
-                      { id: 'cozy', name: 'Cozy', icon: '☕', color: 'from-amber-400 to-yellow-400', query: 'cozy comfort gentle books' },
-                      { id: 'mysterious', name: 'Mysterious', icon: '🌙', color: 'from-gray-400 to-slate-400', query: 'mystery suspense thriller books' },
-                      { id: 'energetic', name: 'Energetic', icon: '☀️', color: 'from-orange-400 to-red-400', query: 'energetic dynamic action books' },
-                      { id: 'reflective', name: 'Reflective', icon: '🌊', color: 'from-blue-400 to-gray-400', query: 'reflective contemplative books' },
-                      { id: 'inspired', name: 'Inspired', icon: '⭐', color: 'from-yellow-400 to-pink-400', query: 'inspiring motivational books' },
-                      { id: 'emotional', name: 'Emotional', icon: '💙', color: 'from-blue-400 to-purple-400', query: 'emotional touching moving books' }
-                    ].map((mood) => (
-                      <button
-                        key={mood.id}
-                        onClick={() => {
-                          handleSearch(mood.query);
-                          setShowMoodSelector(false);
-                        }}
-                        className="group relative p-4 rounded-xl border-2 border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all duration-200 bg-white"
-                      >
-                        <div className="flex flex-col items-center space-y-2">
-                          <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${mood.color} flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow text-2xl`}>
-                            {mood.icon}
-                          </div>
-                          <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-700 transition-colors">
-                            {mood.name}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
+                  {/* Central book icon */}
+                  <div className="w-16 h-16 bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-400 rounded-2xl flex items-center justify-center shadow-2xl border-2 border-white/20">
+                    <BookOpen className="w-8 h-8 text-white drop-shadow-xl" />
+                  </div>
+                  
+                  {/* More reader silhouettes */}
+                  <div className="hidden sm:flex items-center space-x-2">
+                    <div className="w-6 h-6 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                      <div className="w-3 h-3 bg-white rounded-full opacity-90"></div>
+                    </div>
+                    <div className="w-8 h-8 bg-gradient-to-br from-violet-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                      <div className="w-4 h-4 bg-white rounded-full opacity-90"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 drop-shadow-xl">
+                  Discover Your Perfect
+                  <span className="text-amber-200"> Literary Journey</span>
+                </h2>
+                
+                <p className="text-lg sm:text-xl text-gray-50 max-w-3xl mx-auto mb-6 leading-relaxed drop-shadow-lg">
+                  From timeless classics to contemporary masterpieces, from thrilling adventures to profound insights—
+                  <span className="font-semibold text-amber-100"> find books that speak to your soul</span> with our AI-powered recommendations.
+                </p>
+                
+                <div className="flex flex-wrap justify-center gap-4 text-sm">
+                  <div className="flex items-center space-x-2 bg-white bg-opacity-25 backdrop-blur-sm px-4 py-2 rounded-full border border-white border-opacity-40 shadow-lg">
+                    <Sparkles className="w-4 h-4 text-amber-200" />
+                    <span className="text-white font-medium">Personalized Recommendations</span>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-white bg-opacity-25 backdrop-blur-sm px-4 py-2 rounded-full border border-white border-opacity-40 shadow-lg">
+                    <Heart className="w-4 h-4 text-pink-300" />
+                    <span className="text-white font-medium">Curated Collections</span>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-white bg-opacity-25 backdrop-blur-sm px-4 py-2 rounded-full border border-white border-opacity-40 shadow-lg">
+                    <TrendingUp className="w-4 h-4 text-emerald-300" />
+                    <span className="text-white font-medium">Trending Discoveries</span>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <SearchBar 
-              onSearch={handleSearch} 
-              isLoading={isLoading}
-            />
           </div>
-        </div>
 
-        {/* Trending Books Section - Moved below search */}
-        <div className="mb-8">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 border border-gray-200">
-            <BookCarousel onGenreClick={handleSearch} />
-          </div>
-        </div>
-
-        {/* Results Section - Bento Style */}
-        <div className="mb-8">
-          {isLoading && (
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-12 border border-gray-200">
-              <LoadingSpinner 
-                message="Our AI is analyzing thousands of books to find your perfect matches..."
-              />
-            </div>
-          )}
-
-          {error && (
+          {/* Search Section - Bento Style */}
+          <div className="mb-8">
             <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center">
-                    <span className="text-red-600 text-lg font-bold">!</span>
+              {/* Search Header */}
+              <div className="text-center mb-6">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                  What are you in the mood to read?
+                </h3>
+                <p className="text-gray-600 max-w-2xl mx-auto">
+                  Describe your perfect book, and our AI will find exactly what you're looking for.
+                </p>
+              </div>
+              
+              {/* Collapsible Mood Selector */}
+              <div className="mb-6">
+                <div className="text-center">
+                  <button
+                    onClick={() => setShowMoodSelector(!showMoodSelector)}
+                    className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200 rounded-lg transition-all duration-200 text-indigo-700 hover:text-indigo-800"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span className="font-medium">What's your mood today?</span>
+                    {showMoodSelector ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                
+                {/* Collapsible Mood Content */}
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  showMoodSelector ? 'max-h-96 opacity-100 mt-6' : 'max-h-0 opacity-0'
+                }`}>
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100">
+                    <div className="text-center mb-4">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                        Select your reading mood
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        Choose how you're feeling to get personalized book recommendations
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                      {[
+                        { id: 'happy', name: 'Happy', icon: '😊', color: 'from-yellow-400 to-orange-400', query: 'uplifting positive feel-good books' },
+                        { id: 'romantic', name: 'Romantic', icon: '💕', color: 'from-pink-400 to-red-400', query: 'romance love romantic books' },
+                        { id: 'adventurous', name: 'Adventurous', icon: '⚡', color: 'from-blue-400 to-cyan-400', query: 'adventure action thriller books' },
+                        { id: 'thoughtful', name: 'Thoughtful', icon: '🧠', color: 'from-purple-400 to-indigo-400', query: 'philosophical thought-provoking books' },
+                        { id: 'cozy', name: 'Cozy', icon: '☕', color: 'from-amber-400 to-yellow-400', query: 'cozy comfort gentle books' },
+                        { id: 'mysterious', name: 'Mysterious', icon: '🌙', color: 'from-gray-400 to-slate-400', query: 'mystery suspense thriller books' },
+                        { id: 'energetic', name: 'Energetic', icon: '☀️', color: 'from-orange-400 to-red-400', query: 'energetic dynamic action books' },
+                        { id: 'reflective', name: 'Reflective', icon: '🌊', color: 'from-blue-400 to-gray-400', query: 'reflective contemplative books' },
+                        { id: 'inspired', name: 'Inspired', icon: '⭐', color: 'from-yellow-400 to-pink-400', query: 'inspiring motivational books' },
+                        { id: 'emotional', name: 'Emotional', icon: '💙', color: 'from-blue-400 to-purple-400', query: 'emotional touching moving books' }
+                      ].map((mood) => (
+                        <button
+                          key={mood.id}
+                          onClick={() => {
+                            handleSearch(mood.query);
+                            setShowMoodSelector(false);
+                          }}
+                          className="group relative p-4 rounded-xl border-2 border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all duration-200 bg-white"
+                        >
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${mood.color} flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow text-2xl`}>
+                              {mood.icon}
+                            </div>
+                            <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-700 transition-colors">
+                              {mood.name}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-        </div>
-      </main>
+              </div>
+              
+              <SearchBar 
+                onSearch={handleSearch} 
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+
+          {/* Trending Books Section - Moved below search */}
+          <div className="mb-8">
+            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 border border-gray-200">
+              <BookCarousel onGenreClick={handleSearch} />
+            </div>
+          </div>
+
+          {/* Results Section - Bento Style */}
+          <div className="mb-8">
+            {isLoading && (
+              <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-12 border border-gray-200">
+                <LoadingSpinner 
+                  message="Our AI is analyzing thousands of books to find your perfect matches..."
+                />
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center">
+                      <span className="text-red-600 text-lg font-bold">!</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
       )}
 
       {/* Footer */}
       {currentPage === 'home' && (
         <footer className="bg-white border-t border-gray-200 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-white" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-3 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-lg font-semibold text-gray-900">NextRead</span>
               </div>
-              <span className="text-lg font-semibold text-gray-900">NextRead</span>
+              <p className="text-gray-700 mb-2">
+                Powered by AI semantic search • Built with React, TypeScript, and Tailwind CSS
+              </p>
+              <p className="text-sm text-gray-600">
+                Book data provided by Google Books API • Recommendations generated by OpenAI
+              </p>
             </div>
-            <p className="text-gray-700 mb-2">
-              Powered by AI semantic search • Built with React, TypeScript, and Tailwind CSS
-            </p>
-            <p className="text-sm text-gray-600">
-              Book data provided by Google Books API • Recommendations generated by OpenAI
-            </p>
           </div>
-        </div>
-      </footer>
+        </footer>
       )}
     </div>
   );

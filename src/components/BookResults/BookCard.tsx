@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Star, Calendar, BookOpen, ExternalLink, Sparkles } from 'lucide-react';
+import { Star, Calendar, BookOpen, ExternalLink, Sparkles, Heart, HeartOff, Plus } from 'lucide-react';
 import { Book } from '../../types';
+import { useLibrary } from '../../hooks/useLibrary';
+import { useAuth } from '../../hooks/useAuth';
 
 interface BookCardProps {
   book: Book;
@@ -8,13 +10,44 @@ interface BookCardProps {
 }
 
 const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
+  const { user } = useAuth();
+  const { saveBook, isBookSaved } = useLibrary();
   const [imageError, setImageError] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Safely handle categories that might be undefined or null
   const categories = book.categories || [];
 
+  // Check if book is saved when component mounts
+  React.useEffect(() => {
+    if (user) {
+      isBookSaved(book.id).then(setIsSaved);
+    }
+  }, [user, book.id, isBookSaved]);
+
   const handleImageError = () => {
     setImageError(true);
+  };
+
+  const handleSaveBook = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      if (isSaved) {
+        // TODO: Implement remove from library
+        console.log('Remove from library not implemented yet');
+      } else {
+        const success = await saveBook(book);
+        if (success) {
+          setIsSaved(true);
+        }
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const formatAuthors = (authors: string[]) => {
@@ -66,14 +99,36 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
                            transition-colors duration-200 line-clamp-2">
                 {book.title}
               </h3>
-              {book.similarityScore && (
-                <div className="flex items-center space-x-1 bg-indigo-50 px-2 py-1 rounded-full ml-2">
-                  <Sparkles className="w-3 h-3 text-indigo-600" />
-                  <span className="text-xs font-medium text-indigo-700">
-                    {Math.round(book.similarityScore * 100)}%
-                  </span>
+              <div className="flex items-center space-x-1 ml-2">
+                {book.similarityScore && (
+                  <div className="flex items-center space-x-1 bg-indigo-50 px-2 py-1 rounded-full">
+                    <Sparkles className="w-3 h-3 text-indigo-600" />
+                    <span className="text-xs font-medium text-indigo-700">
+                      {Math.round(book.similarityScore * 100)}%
+                    </span>
+                  </div>
+                )}
+                {user && (
+                  <button
+                    onClick={handleSaveBook}
+                    disabled={isSaving}
+                    className={`p-2 rounded-full transition-colors ${
+                      isSaved
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-600'
+                    } disabled:opacity-50`}
+                    title={isSaved ? 'Remove from library' : 'Save to library'}
+                  >
+                    {isSaving ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : isSaved ? (
+                      <Heart className="w-4 h-4 fill-current" />
+                    ) : (
+                      <Plus className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
                 </div>
-              )}
             </div>
 
             <p className="text-sm text-gray-600 mb-2">
@@ -138,10 +193,22 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-          <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium 
-                           transition-colors duration-200">
-            View Details
-          </button>
+          <div className="flex items-center space-x-2">
+            <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium 
+                             transition-colors duration-200">
+              View Details
+            </button>
+            {user && !isSaved && (
+              <button
+                onClick={handleSaveBook}
+                disabled={isSaving}
+                className="flex items-center space-x-1 text-sm text-gray-600 hover:text-indigo-600 font-medium transition-colors duration-200 disabled:opacity-50"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Save</span>
+              </button>
+            )}
+          </div>
           
           <a
             href={book.googleBooksUrl}

@@ -1,139 +1,88 @@
 import React, { useState, useEffect } from 'react';
-import { Book, Heart, BookOpen, Star, Calendar, Search, Filter, Plus, Edit3, Trash2, Eye, EyeOff, StickyNote } from 'lucide-react';
+import { 
+  Book, 
+  Heart, 
+  BookOpen, 
+  Star, 
+  Calendar, 
+  Search, 
+  Filter, 
+  Edit3, 
+  Trash2, 
+  Eye, 
+  EyeOff, 
+  StickyNote,
+  TrendingUp,
+  Award,
+  Target,
+  BarChart3,
+  Plus,
+  RefreshCw
+} from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { Book as BookType } from '../../types';
-import BookCard from '../BookResults/BookCard';
+import { useLibrary } from '../../hooks/useLibrary';
+import { SavedBook } from '../../lib/supabase';
 import NotesModal from './NotesModal';
-
-interface SavedBook extends BookType {
-  savedAt: string;
-  isRead: boolean;
-  readAt?: string;
-  userRating?: number;
-  notes?: string;
-  tags?: string[];
-}
+import LoadingSpinner from '../Common/LoadingSpinner';
 
 const LibraryPage: React.FC = () => {
   const { user } = useAuth();
-  const [savedBooks, setSavedBooks] = useState<SavedBook[]>([]);
-  const [activeTab, setActiveTab] = useState<'saved' | 'read' | 'notes'>('saved');
+  const { 
+    savedBooks, 
+    libraryStats, 
+    isLoading, 
+    error,
+    loadLibrary,
+    removeBook,
+    toggleReadStatus,
+    saveNotesAndRating
+  } = useLibrary();
+  
+  const [activeTab, setActiveTab] = useState<'all' | 'reading' | 'read' | 'notes'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterBy, setFilterBy] = useState<'all' | 'fiction' | 'non-fiction' | 'recent'>('all');
+  const [filterBy, setFilterBy] = useState<'all' | 'recent' | 'rated' | 'progress'>('all');
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState<SavedBook | null>(null);
 
-  // Mock data for demonstration
-  useEffect(() => {
-    const mockSavedBooks: SavedBook[] = [
-      {
-        id: '1',
-        title: 'The Fifth Season',
-        authors: ['N.K. Jemisin'],
-        description: 'A woman searches for her daughter in a world where the earth itself is out to kill everyone. The first book in the acclaimed Broken Earth trilogy.',
-        coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=450&fit=crop',
-        publishedDate: '2015',
-        pageCount: 512,
-        categories: ['Science Fiction', 'Fantasy'],
-        rating: 4.3,
-        ratingCount: 45000,
-        googleBooksUrl: 'https://books.google.com/books?id=example1',
-        isbn: '9780316229296',
-        savedAt: '2024-01-15',
-        isRead: true,
-        readAt: '2024-01-20',
-        userRating: 5,
-        notes: 'Absolutely incredible world-building. The magic system is fascinating and the characters are so well developed. Can\'t wait to read the next book in the series!',
-        tags: ['sci-fi', 'fantasy', 'award-winner']
-      },
-      {
-        id: '2',
-        title: 'Klara and the Sun',
-        authors: ['Kazuo Ishiguro'],
-        description: 'From her place in the store, Klara, an artificial friend with outstanding observational qualities, watches carefully the behavior of those who come in to browse.',
-        coverImage: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop',
-        publishedDate: '2021',
-        pageCount: 303,
-        categories: ['Science Fiction', 'Literary Fiction'],
-        rating: 4.1,
-        ratingCount: 28000,
-        googleBooksUrl: 'https://books.google.com/books?id=example2',
-        isbn: '9780571364886',
-        savedAt: '2024-01-10',
-        isRead: false,
-        tags: ['literary', 'ai', 'ishiguro']
-      },
-      {
-        id: '3',
-        title: 'The Power',
-        authors: ['Naomi Alderman'],
-        description: 'What would happen if women developed a physical power that they had never had before? The Power is our era\'s The Handmaid\'s Tale.',
-        coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=450&fit=crop',
-        publishedDate: '2016',
-        pageCount: 432,
-        categories: ['Science Fiction', 'Dystopian Fiction'],
-        rating: 4.2,
-        ratingCount: 52000,
-        googleBooksUrl: 'https://books.google.com/books?id=example3',
-        isbn: '9780316547611',
-        savedAt: '2024-01-05',
-        isRead: true,
-        readAt: '2024-01-12',
-        userRating: 4,
-        notes: 'Thought-provoking exploration of power dynamics. The premise is fascinating and the execution is mostly solid, though it gets a bit heavy-handed at times.',
-        tags: ['dystopian', 'feminism', 'power']
-      },
-      {
-        id: '4',
-        title: 'Project Hail Mary',
-        authors: ['Andy Weir'],
-        description: 'Ryland Grace is the sole survivor on a desperate, last-chance mission—and if he fails, humanity and the earth itself will perish.',
-        coverImage: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=300&h=450&fit=crop',
-        publishedDate: '2021',
-        pageCount: 496,
-        categories: ['Science Fiction', 'Adventure'],
-        rating: 4.5,
-        ratingCount: 89000,
-        googleBooksUrl: 'https://books.google.com/books?id=example4',
-        isbn: '9780593135204',
-        savedAt: '2024-01-18',
-        isRead: false,
-        tags: ['space', 'adventure', 'humor']
-      }
-    ];
-    setSavedBooks(mockSavedBooks);
-  }, []);
-
+  // Filter books based on active tab and filters
   const filteredBooks = savedBooks.filter(book => {
-    const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         book.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesFilter = filterBy === 'all' || 
-                         (filterBy === 'fiction' && book.categories.some(cat => cat.toLowerCase().includes('fiction'))) ||
-                         (filterBy === 'non-fiction' && !book.categories.some(cat => cat.toLowerCase().includes('fiction'))) ||
-                         (filterBy === 'recent' && new Date(book.savedAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
-    
-    const matchesTab = activeTab === 'saved' || 
-                      (activeTab === 'read' && book.isRead) ||
-                      (activeTab === 'notes' && book.notes);
-    
-    return matchesSearch && matchesFilter && matchesTab;
+    // Tab filtering
+    if (activeTab === 'reading' && book.is_read) return false;
+    if (activeTab === 'read' && !book.is_read) return false;
+    if (activeTab === 'notes' && !book.notes) return false;
+
+    // Search filtering
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesTitle = book.book_data.title.toLowerCase().includes(query);
+      const matchesAuthor = book.book_data.authors.some(author => 
+        author.toLowerCase().includes(query)
+      );
+      const matchesNotes = book.notes?.toLowerCase().includes(query);
+      
+      if (!matchesTitle && !matchesAuthor && !matchesNotes) return false;
+    }
+
+    // Additional filtering
+    if (filterBy === 'recent') {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return new Date(book.saved_at) > weekAgo;
+    }
+    if (filterBy === 'rated' && !book.user_rating) return false;
+    if (filterBy === 'progress' && book.reading_progress === 0) return false;
+
+    return true;
   });
 
-  const toggleReadStatus = (bookId: string) => {
-    setSavedBooks(books => books.map(book => 
-      book.id === bookId 
-        ? { 
-            ...book, 
-            isRead: !book.isRead, 
-            readAt: !book.isRead ? new Date().toISOString().split('T')[0] : undefined 
-          }
-        : book
-    ));
+  const handleRemoveBook = async (bookId: string) => {
+    if (window.confirm('Are you sure you want to remove this book from your library?')) {
+      await removeBook(bookId);
+    }
   };
 
-  const removeBook = (bookId: string) => {
-    setSavedBooks(books => books.filter(book => book.id !== bookId));
+  const handleToggleRead = async (bookId: string) => {
+    await toggleReadStatus(bookId);
   };
 
   const openNotesModal = (book: SavedBook) => {
@@ -141,135 +90,213 @@ const LibraryPage: React.FC = () => {
     setShowNotesModal(true);
   };
 
-  const saveNotes = (bookId: string, notes: string, userRating?: number) => {
-    setSavedBooks(books => books.map(book => 
-      book.id === bookId ? { ...book, notes, userRating } : book
-    ));
+  const handleSaveNotes = async (bookId: string, notes: string, rating?: number) => {
+    await saveNotesAndRating(bookId, notes, rating);
+    setShowNotesModal(false);
   };
+
+  const handleRefresh = () => {
+    loadLibrary({
+      search: searchQuery || undefined,
+      hasNotes: activeTab === 'notes' ? true : undefined,
+      isRead: activeTab === 'read' ? true : activeTab === 'reading' ? false : undefined
+    });
+  };
+
+  // Load library with filters when they change
+  useEffect(() => {
+    if (user) {
+      loadLibrary({
+        search: searchQuery || undefined,
+        hasNotes: activeTab === 'notes' ? true : undefined,
+        isRead: activeTab === 'read' ? true : activeTab === 'reading' ? false : undefined
+      });
+    }
+  }, [user, searchQuery, activeTab, loadLibrary]);
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to access your library</h2>
-          <p className="text-gray-600">Create an account to save books and track your reading progress.</p>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <BookOpen className="w-10 h-10 text-indigo-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Sign in to access your library</h2>
+          <p className="text-gray-600 mb-6">Create an account to save books, track your reading progress, and get personalized recommendations.</p>
+          <button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+            Get Started
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-16 h-16 bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl flex items-center justify-center mr-4">
-                <BookOpen className="w-8 h-8 text-white" />
+      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <div className="w-20 h-20 bg-white bg-opacity-20 backdrop-blur-sm rounded-3xl flex items-center justify-center">
+                <BookOpen className="w-10 h-10 text-white" />
               </div>
-              <h1 className="text-4xl font-bold">My Library</h1>
+              <div>
+                <h1 className="text-4xl font-bold mb-2">My Library</h1>
+                <p className="text-xl text-white text-opacity-90">
+                  Your personal collection of {libraryStats.totalBooks} books
+                </p>
+              </div>
             </div>
-            <p className="text-xl text-white text-opacity-90 max-w-2xl mx-auto">
-              Your personal collection of saved books, reading progress, and notes
-            </p>
+            <button
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="flex items-center space-x-2 bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Heart className="w-6 h-6 text-blue-600" />
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
+                <Heart className="w-7 h-7 text-white" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Saved Books</p>
-                <p className="text-2xl font-bold text-gray-900">{savedBooks.length}</p>
+                <p className="text-sm font-medium text-gray-600">Total Books</p>
+                <p className="text-3xl font-bold text-gray-900">{libraryStats.totalBooks}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-green-600" />
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center">
+                <BookOpen className="w-7 h-7 text-white" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Books Read</p>
-                <p className="text-2xl font-bold text-gray-900">{savedBooks.filter(b => b.isRead).length}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <Star className="w-6 h-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Avg Rating</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {savedBooks.filter(b => b.userRating).length > 0 
-                    ? (savedBooks.filter(b => b.userRating).reduce((acc, b) => acc + (b.userRating || 0), 0) / savedBooks.filter(b => b.userRating).length).toFixed(1)
-                    : '—'
-                  }
+                <p className="text-3xl font-bold text-gray-900">{libraryStats.readBooks}</p>
+                <p className="text-xs text-green-600 font-medium">
+                  {libraryStats.readingProgress}% complete
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <StickyNote className="w-6 h-6 text-purple-600" />
+              <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center">
+                <Star className="w-7 h-7 text-white" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Avg Rating</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {libraryStats.averageRating > 0 ? libraryStats.averageRating.toFixed(1) : '—'}
+                </p>
+                {libraryStats.averageRating > 0 && (
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-3 h-3 ${
+                          i < Math.round(libraryStats.averageRating)
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+            <div className="flex items-center">
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
+                <StickyNote className="w-7 h-7 text-white" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">With Notes</p>
-                <p className="text-2xl font-bold text-gray-900">{savedBooks.filter(b => b.notes).length}</p>
+                <p className="text-3xl font-bold text-gray-900">{libraryStats.booksWithNotes}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Tabs and Controls */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
+        {/* Top Genres */}
+        {libraryStats.topGenres.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 mb-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+              <BarChart3 className="w-5 h-5 mr-2 text-indigo-600" />
+              Your Top Genres
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              {libraryStats.topGenres.map((genre, index) => (
+                <div key={genre.genre} className="text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-2">
+                    <span className="text-white font-bold">{index + 1}</span>
+                  </div>
+                  <p className="font-semibold text-gray-900 text-sm">{genre.genre}</p>
+                  <p className="text-xs text-gray-600">{genre.count} books</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Controls */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 mb-8">
           <div className="p-6">
             {/* Tab Navigation */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-              <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-4 sm:mb-0">
+              <div className="flex space-x-1 bg-gray-100 rounded-xl p-1 mb-4 sm:mb-0">
                 <button
-                  onClick={() => setActiveTab('saved')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === 'saved'
+                  onClick={() => setActiveTab('all')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'all'
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  All Saved ({savedBooks.length})
+                  All Books ({libraryStats.totalBooks})
+                </button>
+                <button
+                  onClick={() => setActiveTab('reading')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'reading'
+                      ? 'bg-white text-indigo-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Currently Reading ({libraryStats.totalBooks - libraryStats.readBooks})
                 </button>
                 <button
                   onClick={() => setActiveTab('read')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'read'
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Read ({savedBooks.filter(b => b.isRead).length})
+                  Read ({libraryStats.readBooks})
                 </button>
                 <button
                   onClick={() => setActiveTab('notes')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'notes'
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  With Notes ({savedBooks.filter(b => b.notes).length})
+                  With Notes ({libraryStats.booksWithNotes})
                 </button>
               </div>
             </div>
@@ -283,7 +310,7 @@ const LibraryPage: React.FC = () => {
                   placeholder="Search your library..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
               
@@ -292,154 +319,219 @@ const LibraryPage: React.FC = () => {
                 <select
                   value={filterBy}
                   onChange={(e) => setFilterBy(e.target.value as any)}
-                  className="pl-10 pr-8 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none bg-white"
+                  className="pl-10 pr-8 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none bg-white min-w-[160px]"
                 >
                   <option value="all">All Books</option>
-                  <option value="fiction">Fiction</option>
-                  <option value="non-fiction">Non-Fiction</option>
                   <option value="recent">Recently Added</option>
+                  <option value="rated">With Ratings</option>
+                  <option value="progress">In Progress</option>
                 </select>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Books Grid */}
-        {filteredBooks.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredBooks.map((book) => (
-              <div key={book.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                <div className="flex space-x-4">
-                  {/* Book Cover */}
-                  <div className="flex-shrink-0">
-                    <div className="w-20 h-28 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
-                      <img
-                        src={book.coverImage}
-                        alt={`Cover of ${book.title}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="bg-white rounded-2xl shadow-xl p-12 border border-gray-100">
+            <LoadingSpinner message="Loading your library..." />
+          </div>
+        )}
 
-                  {/* Book Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-                        {book.title}
-                      </h3>
-                      <div className="flex items-center space-x-1 ml-2">
-                        {book.isRead && (
-                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                            <BookOpen className="w-3 h-3 text-green-600" />
-                          </div>
-                        )}
-                        {book.notes && (
-                          <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
-                            <StickyNote className="w-3 h-3 text-purple-600" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-gray-600 mb-2">
-                      by {book.authors.join(', ')}
-                    </p>
-
-                    <div className="flex items-center space-x-4 text-xs text-gray-500 mb-3">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="w-3 h-3" />
-                        <span>Saved {new Date(book.savedAt).toLocaleDateString()}</span>
-                      </div>
-                      
-                      {book.userRating && (
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          <span>{book.userRating}/5</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {book.tags && book.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {book.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 text-xs bg-indigo-50 text-indigo-600 rounded-full"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {book.notes && (
-                      <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                        <p className="text-sm text-gray-700 line-clamp-2">
-                          {book.notes}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => toggleReadStatus(book.id)}
-                          className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                            book.isRead
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
-                        >
-                          {book.isRead ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                          <span>{book.isRead ? 'Read' : 'Mark as Read'}</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => openNotesModal(book)}
-                          className="flex items-center space-x-1 px-3 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg text-xs font-medium transition-colors"
-                        >
-                          <Edit3 className="w-3 h-3" />
-                          <span>Notes</span>
-                        </button>
-                      </div>
-                      
-                      <button
-                        onClick={() => removeBook(book.id)}
-                        className="flex items-center space-x-1 px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-xs font-medium transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        <span>Remove</span>
-                      </button>
-                    </div>
-                  </div>
+        {/* Error State */}
+        {error && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 mb-8">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center">
+                  <span className="text-red-600 text-lg font-bold">!</span>
                 </div>
               </div>
-            ))}
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-red-800">Error Loading Library</h3>
+                <p className="text-red-700 mt-1">{error}</p>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="text-center py-16">
-            <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {activeTab === 'saved' && 'No saved books yet'}
-              {activeTab === 'read' && 'No books marked as read'}
-              {activeTab === 'notes' && 'No books with notes'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {activeTab === 'saved' && 'Start building your library by saving books you want to read.'}
-              {activeTab === 'read' && 'Mark books as read to track your reading progress.'}
-              {activeTab === 'notes' && 'Add notes to your books to remember your thoughts and insights.'}
-            </p>
-          </div>
+        )}
+
+        {/* Books Grid */}
+        {!isLoading && !error && (
+          <>
+            {filteredBooks.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {filteredBooks.map((savedBook) => (
+                  <div key={savedBook.id} className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 hover:shadow-2xl transition-all duration-300">
+                    <div className="flex space-x-4">
+                      {/* Book Cover */}
+                      <div className="flex-shrink-0">
+                        <div className="w-24 h-32 bg-gray-100 rounded-xl overflow-hidden shadow-lg">
+                          <img
+                            src={savedBook.book_data.coverImage}
+                            alt={`Cover of ${savedBook.book_data.title}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Book Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
+                            {savedBook.book_data.title}
+                          </h3>
+                          <div className="flex items-center space-x-1 ml-2">
+                            {savedBook.is_read && (
+                              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                <BookOpen className="w-3 h-3 text-green-600" />
+                              </div>
+                            )}
+                            {savedBook.notes && (
+                              <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
+                                <StickyNote className="w-3 h-3 text-purple-600" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <p className="text-sm text-gray-600 mb-2">
+                          by {savedBook.book_data.authors.join(', ')}
+                        </p>
+
+                        <div className="flex items-center space-x-4 text-xs text-gray-500 mb-3">
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="w-3 h-3" />
+                            <span>Saved {new Date(savedBook.saved_at).toLocaleDateString()}</span>
+                          </div>
+                          
+                          {savedBook.user_rating && (
+                            <div className="flex items-center space-x-1">
+                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              <span>{savedBook.user_rating}/5</span>
+                            </div>
+                          )}
+
+                          {savedBook.reading_progress > 0 && (
+                            <div className="flex items-center space-x-1">
+                              <Target className="w-3 h-3" />
+                              <span>{savedBook.reading_progress}%</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {savedBook.tags && savedBook.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {savedBook.tags.map((tag, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 text-xs bg-indigo-50 text-indigo-600 rounded-full"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Reading Progress Bar */}
+                        {savedBook.reading_progress > 0 && (
+                          <div className="mb-3">
+                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                              <span>Reading Progress</span>
+                              <span>{savedBook.reading_progress}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${savedBook.reading_progress}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+
+                        {savedBook.notes && (
+                          <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                            <p className="text-sm text-gray-700 line-clamp-2">
+                              {savedBook.notes}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleToggleRead(savedBook.book_id)}
+                              className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                                savedBook.is_read
+                                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                            >
+                              {savedBook.is_read ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                              <span>{savedBook.is_read ? 'Read' : 'Mark as Read'}</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => openNotesModal(savedBook)}
+                              className="flex items-center space-x-1 px-3 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg text-xs font-medium transition-colors"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                              <span>Notes</span>
+                            </button>
+                          </div>
+                          
+                          <button
+                            onClick={() => handleRemoveBook(savedBook.book_id)}
+                            className="flex items-center space-x-1 px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-xs font-medium transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Remove</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-xl p-12 border border-gray-100 text-center">
+                <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {activeTab === 'all' && 'No books in your library yet'}
+                  {activeTab === 'reading' && 'No books currently being read'}
+                  {activeTab === 'read' && 'No books marked as read'}
+                  {activeTab === 'notes' && 'No books with notes'}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {activeTab === 'all' && 'Start building your library by saving books you want to read.'}
+                  {activeTab === 'reading' && 'Save some books and start your reading journey!'}
+                  {activeTab === 'read' && 'Mark books as read to track your reading progress.'}
+                  {activeTab === 'notes' && 'Add notes to your books to remember your thoughts and insights.'}
+                </p>
+                <button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                  Discover Books
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* Notes Modal */}
       {showNotesModal && selectedBook && (
         <NotesModal
-          book={selectedBook}
+          book={{
+            id: selectedBook.book_id,
+            title: selectedBook.book_data.title,
+            authors: selectedBook.book_data.authors,
+            coverImage: selectedBook.book_data.coverImage,
+            publishedDate: selectedBook.book_data.publishedDate,
+            notes: selectedBook.notes,
+            userRating: selectedBook.user_rating,
+            readAt: selectedBook.read_at
+          }}
           onClose={() => setShowNotesModal(false)}
-          onSave={saveNotes}
+          onSave={handleSaveNotes}
         />
       )}
     </div>

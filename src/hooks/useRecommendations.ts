@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { DatabaseService } from '../lib/supabase';
+import { DatabaseService, SavedBook } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { Book } from '../types';
+import { useLibrary } from './useLibrary';
 
 interface RecommendationData {
   recentQueries: string[];
@@ -9,16 +10,19 @@ interface RecommendationData {
   popularGenres: string[];
   preferences: any;
   searchHistory: any[];
+  savedBooks: SavedBook[];
 }
 
 export const useRecommendations = () => {
   const { user } = useAuth();
+  const { savedBooks } = useLibrary();
   const [recommendationData, setRecommendationData] = useState<RecommendationData>({
     recentQueries: [],
     clickedBooks: [],
     popularGenres: [],
     preferences: null,
-    searchHistory: []
+    searchHistory: [],
+    savedBooks: []
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,6 +31,14 @@ export const useRecommendations = () => {
       loadRecommendationData();
     }
   }, [user]);
+
+  // Update recommendation data when saved books change
+  useEffect(() => {
+    setRecommendationData(prev => ({
+      ...prev,
+      savedBooks
+    }));
+  }, [savedBooks]);
 
   const loadRecommendationData = async () => {
     if (!user) return;
@@ -43,65 +55,109 @@ export const useRecommendations = () => {
   };
 
   const generatePersonalizedRecommendations = (): Book[] => {
-    const { clickedBooks, popularGenres, recentQueries } = recommendationData;
+    const { clickedBooks, popularGenres, recentQueries, savedBooks } = recommendationData;
     
-    // This is a simplified recommendation algorithm
-    // In a real app, you'd use more sophisticated ML algorithms
-    
+    // Enhanced recommendation algorithm using saved books data
     const recommendations: Book[] = [];
     
-    // Always provide some recommendations, even for new users
-    // Mock recommendations based on user data or general popular books
-    if (popularGenres.includes('Science Fiction') || recentQueries.some(q => q.toLowerCase().includes('science'))) {
+    // Get genres from saved books
+    const savedGenres = savedBooks.flatMap(book => book.book_data.categories);
+    const genreCount = savedGenres.reduce((acc, genre) => {
+      acc[genre] = (acc[genre] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const topSavedGenres = Object.entries(genreCount)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([genre]) => genre);
+    
+    // Get authors from saved books
+    const savedAuthors = savedBooks.flatMap(book => book.book_data.authors);
+    const authorCount = savedAuthors.reduce((acc, author) => {
+      acc[author] = (acc[author] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const topAuthors = Object.entries(authorCount)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 2)
+      .map(([author]) => author);
+    
+    // Get average rating preference
+    const ratedBooks = savedBooks.filter(book => book.user_rating);
+    const avgUserRating = ratedBooks.length > 0 
+      ? ratedBooks.reduce((sum, book) => sum + (book.user_rating || 0), 0) / ratedBooks.length
+      : 4.0;
+    
+    // Generate recommendations based on saved library
+    if (topSavedGenres.includes('Science Fiction') || popularGenres.includes('Science Fiction') || recentQueries.some(q => q.toLowerCase().includes('science'))) {
       recommendations.push({
         id: 'rec-sf-1',
-        title: 'The Expanse: Leviathan Wakes',
-        authors: ['James S.A. Corey'],
-        description: 'A space opera that follows a detective and a ship\'s officer as they uncover a conspiracy.',
+        title: 'The Left Hand of Darkness',
+        authors: ['Ursula K. Le Guin'],
+        description: 'A groundbreaking exploration of gender and society on an alien world.',
         coverImage: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=300&h=450&fit=crop',
-        publishedDate: '2011',
+        publishedDate: '1969',
         categories: ['Science Fiction', 'Space Opera'],
-        rating: 4.4,
-        ratingCount: 89000,
-        googleBooksUrl: 'https://books.google.com/books?id=example',
-        recommendation: 'Based on your love for science fiction, this space opera offers complex characters and political intrigue.'
-      });
-    }
-
-    if (popularGenres.includes('Fantasy') || recentQueries.some(q => q.toLowerCase().includes('fantasy'))) {
-      recommendations.push({
-        id: 'rec-fantasy-1',
-        title: 'The Name of the Wind',
-        authors: ['Patrick Rothfuss'],
-        description: 'The first book in the Kingkiller Chronicle series about a legendary figure telling his story.',
-        coverImage: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=450&fit=crop',
-        publishedDate: '2007',
-        categories: ['Fantasy', 'Epic Fantasy'],
-        rating: 4.5,
-        ratingCount: 156000,
-        googleBooksUrl: 'https://books.google.com/books?id=example',
-        recommendation: 'Your fantasy reading history suggests you\'ll love this beautifully written epic tale.'
-      });
-    }
-
-    // Add more recommendations based on recent queries
-    if (recentQueries.some(q => q.toLowerCase().includes('mystery'))) {
-      recommendations.push({
-        id: 'rec-mystery-1',
-        title: 'The Thursday Murder Club',
-        authors: ['Richard Osman'],
-        description: 'Four unlikely friends meet weekly to investigate cold cases, but soon find themselves pursuing a killer.',
-        coverImage: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop',
-        publishedDate: '2020',
-        categories: ['Mystery', 'Cozy Mystery'],
-        rating: 4.3,
+        rating: 4.2,
         ratingCount: 67000,
         googleBooksUrl: 'https://books.google.com/books?id=example',
-        recommendation: 'Since you\'ve been searching for mysteries, this charming cozy mystery is perfect for you.'
+        recommendation: 'Based on your science fiction preferences, this classic explores themes similar to your reading history.'
       });
     }
 
-    // If no specific preferences detected, provide general popular recommendations
+    if (topSavedGenres.includes('Fantasy') || popularGenres.includes('Fantasy') || recentQueries.some(q => q.toLowerCase().includes('fantasy'))) {
+      recommendations.push({
+        id: 'rec-fantasy-1',
+        title: 'The Goblin Emperor',
+        authors: ['Katherine Addison'],
+        description: 'A court intrigue fantasy about a half-goblin prince who unexpectedly becomes emperor.',
+        coverImage: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=450&fit=crop',
+        publishedDate: '2014',
+        categories: ['Fantasy', 'Court Intrigue'],
+        rating: 4.3,
+        ratingCount: 45000,
+        googleBooksUrl: 'https://books.google.com/books?id=example',
+        recommendation: 'Your fantasy preferences suggest you\'ll enjoy this character-driven political fantasy.'
+      });
+    }
+
+    // Recommendations based on favorite authors
+    if (topAuthors.length > 0) {
+      recommendations.push({
+        id: 'rec-author-1',
+        title: 'Similar Authors Recommendation',
+        authors: ['Various Authors'],
+        description: `Books by authors similar to your favorites: ${topAuthors.join(', ')}.`,
+        coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=450&fit=crop',
+        publishedDate: '2023',
+        categories: topSavedGenres,
+        rating: avgUserRating,
+        ratingCount: 25000,
+        googleBooksUrl: 'https://books.google.com/books?id=example',
+        recommendation: `Since you enjoy ${topAuthors[0]}, you might like these similar authors.`
+      });
+    }
+
+    // High-rated books in user's preferred genres
+    if (topSavedGenres.length > 0 && avgUserRating >= 4.0) {
+      recommendations.push({
+        id: 'rec-highrated-1',
+        title: 'Highly Rated in Your Genres',
+        authors: ['Acclaimed Authors'],
+        description: `Top-rated books in ${topSavedGenres[0]} that match your high standards.`,
+        coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=450&fit=crop',
+        publishedDate: '2023',
+        categories: [topSavedGenres[0]],
+        rating: 4.6,
+        ratingCount: 89000,
+        googleBooksUrl: 'https://books.google.com/books?id=example',
+        recommendation: `Since you rate books highly (avg: ${avgUserRating.toFixed(1)}), these acclaimed ${topSavedGenres[0]} books should meet your standards.`
+      });
+    }
+
+    // If no specific preferences detected or for new users, provide general recommendations
     if (recommendations.length === 0) {
       recommendations.push(
         {
@@ -136,14 +192,20 @@ export const useRecommendations = () => {
   };
 
   const getBasedOnLibraryRecommendations = (): Book[] => {
-    const { clickedBooks } = recommendationData;
+    const { clickedBooks, savedBooks } = recommendationData;
     
-    // Generate recommendations based on books the user has clicked on
+    // Generate recommendations based on saved books and clicked books
     const recommendations: Book[] = [];
     
-    if (clickedBooks.length > 0) {
-      // Find common themes/genres from clicked books
-      const genres = clickedBooks.flatMap(book => book.categories || []);
+    // Combine saved books and clicked books for analysis
+    const allBooks = [
+      ...savedBooks.map(book => book.book_data),
+      ...clickedBooks
+    ];
+    
+    if (allBooks.length > 0) {
+      // Find common themes/genres from all user interactions
+      const genres = allBooks.flatMap(book => book.categories || []);
       const genreCount = genres.reduce((acc, genre) => {
         acc[genre] = (acc[genre] || 0) + 1;
         return acc;
@@ -152,19 +214,47 @@ export const useRecommendations = () => {
       const topGenre = Object.entries(genreCount)
         .sort(([,a], [,b]) => b - a)[0]?.[0];
       
+      // Get reading patterns from saved books
+      const readBooks = savedBooks.filter(book => book.is_read);
+      const avgReadingTime = readBooks.length > 0 
+        ? readBooks.reduce((sum, book) => {
+            const savedDate = new Date(book.saved_at);
+            const readDate = book.read_at ? new Date(book.read_at) : new Date();
+            return sum + (readDate.getTime() - savedDate.getTime());
+          }, 0) / readBooks.length / (1000 * 60 * 60 * 24) // Convert to days
+        : 0;
+      
       if (topGenre) {
         recommendations.push({
           id: 'rec-library-1',
-          title: 'Similar to Your Recent Reads',
+          title: 'Based on Your Library',
           authors: ['Various Authors'],
-          description: `Books similar to your recent ${topGenre} selections.`,
+          description: `Curated ${topGenre} recommendations based on your ${savedBooks.length} saved books and reading patterns.`,
           coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=450&fit=crop',
           publishedDate: '2023',
           categories: [topGenre],
           rating: 4.2,
           ratingCount: 25000,
           googleBooksUrl: 'https://books.google.com/books?id=example',
-          recommendation: `Based on your interest in ${topGenre} books from your library.`
+          recommendation: `Based on your ${savedBooks.length} saved books and preference for ${topGenre}, with ${readBooks.length} books completed.`
+        });
+      }
+      
+      // Add recommendations based on reading speed/habits
+      if (readBooks.length >= 3) {
+        const readingSpeed = avgReadingTime < 30 ? 'fast' : avgReadingTime < 60 ? 'moderate' : 'slow';
+        recommendations.push({
+          id: 'rec-reading-pace-1',
+          title: `Perfect for Your Reading Pace`,
+          authors: ['Curated Selection'],
+          description: `Books that match your ${readingSpeed} reading style and completion patterns.`,
+          coverImage: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop',
+          publishedDate: '2023',
+          categories: [topGenre || 'Fiction'],
+          rating: 4.4,
+          ratingCount: 35000,
+          googleBooksUrl: 'https://books.google.com/books?id=example',
+          recommendation: `Based on your reading habits (${readBooks.length} books completed), these match your ${readingSpeed} reading pace.`
         });
       }
     }
@@ -173,22 +263,71 @@ export const useRecommendations = () => {
   };
 
   const getTrendingBasedOnHistory = (): Book[] => {
-    // Generate trending recommendations based on user's search patterns
-    return [
-      {
+    const { savedBooks, recentQueries, popularGenres } = recommendationData;
+    
+    // Generate trending recommendations based on user's patterns and current trends
+    const recommendations: Book[] = [];
+    
+    // Get user's genre preferences
+    const userGenres = savedBooks.flatMap(book => book.book_data.categories);
+    const combinedGenres = [...userGenres, ...popularGenres];
+    const genreCount = combinedGenres.reduce((acc, genre) => {
+      acc[genre] = (acc[genre] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const topUserGenre = Object.entries(genreCount)
+      .sort(([,a], [,b]) => b - a)[0]?.[0];
+    
+    if (topUserGenre) {
+      recommendations.push({
         id: 'rec-trending-1',
-        title: 'Fourth Wing',
-        authors: ['Rebecca Yarros'],
-        description: 'A fantasy romance about a war college where dragons choose their riders.',
+        title: 'Trending in Your Favorite Genre',
+        authors: ['Popular Authors'],
+        description: `Currently trending ${topUserGenre} books that align with your reading history.`,
         coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=450&fit=crop',
-        publishedDate: '2023',
-        categories: ['Fantasy', 'Romance'],
-        rating: 4.6,
+        publishedDate: '2024',
+        categories: [topUserGenre],
+        rating: 4.5,
         ratingCount: 89000,
         googleBooksUrl: 'https://books.google.com/books?id=example',
-        recommendation: 'This trending fantasy romance matches your reading patterns perfectly.'
+        recommendation: `This trending ${topUserGenre} book matches your reading patterns and current popular trends.`
+      });
+    }
+    
+    // Add recommendations based on recent search queries
+    if (recentQueries.length > 0) {
+      const recentThemes = recentQueries.join(' ').toLowerCase();
+      let trendingCategory = 'Fiction';
+      let trendingDescription = 'Popular books matching your recent searches';
+      
+      if (recentThemes.includes('romance')) {
+        trendingCategory = 'Romance';
+        trendingDescription = 'Trending romance novels based on your recent searches';
+      } else if (recentThemes.includes('mystery') || recentThemes.includes('thriller')) {
+        trendingCategory = 'Mystery';
+        trendingDescription = 'Hot mystery and thriller releases matching your interests';
+      } else if (recentThemes.includes('fantasy') || recentThemes.includes('magic')) {
+        trendingCategory = 'Fantasy';
+        trendingDescription = 'Trending fantasy books that match your search history';
       }
-    ];
+      
+      recommendations.push({
+        id: 'rec-trending-search-1',
+        title: 'Trending Based on Your Searches',
+        authors: ['Trending Authors'],
+        description: trendingDescription,
+        coverImage: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=300&h=450&fit=crop',
+        publishedDate: '2024',
+        categories: [trendingCategory],
+        rating: 4.4,
+        ratingCount: 67000,
+        googleBooksUrl: 'https://books.google.com/books?id=example',
+        recommendation: `Based on your recent searches for "${recentQueries.slice(0, 2).join('", "')}", this trending book should interest you.`
+      });
+    }
+    
+    return recommendations;
   };
 
   return {

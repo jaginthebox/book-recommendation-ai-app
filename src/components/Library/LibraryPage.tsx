@@ -234,13 +234,14 @@ const LibraryPage: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button
+            <div className="flex items-center space-x-4">
               {libraryStats.readingGoal && (
                 <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
                   <div className="text-2xl font-bold">{libraryStats.readingGoal.current_books}/{libraryStats.readingGoal.target_books}</div>
                   <div className="text-xs text-white text-opacity-80">2024 Goal</div>
                 </div>
               )}
+              <button
               onClick={handleRefresh}
               disabled={isLoading}
               className="flex items-center space-x-2 bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
@@ -248,6 +249,7 @@ const LibraryPage: React.FC = () => {
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
             </button>
+            </div>
           </div>
         </div>
       </div>

@@ -131,7 +131,9 @@ export const useAuthProvider = () => {
         email,
         password,
         options: {
-          emailRedirectTo: undefined, // Skip email confirmation
+          data: {
+            name: name
+          }
         },
       });
 

@@ -42,7 +42,6 @@ const LibraryPage: React.FC = () => {
   const { 
     savedBooks, 
     wishlistItems,
-    libraryStats, 
     isLoading, 
     error,
     loadLibrary,
@@ -50,8 +49,12 @@ const LibraryPage: React.FC = () => {
     removeBook,
     updateBookStatus,
     saveNotesAndRating,
-    setReadingGoal
+    setReadingGoal,
+    getLibraryStats
   } = useLibrary();
+  
+  // Get library stats by calling the function
+  const libraryStats = getLibraryStats();
   
   const [activeTab, setActiveTab] = useState<'all' | 'want_to_read' | 'currently_reading' | 'read' | 'notes' | 'wishlist'>('all');
   const [searchQuery, setSearchQuery] = useState('');

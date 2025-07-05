@@ -353,6 +353,16 @@ const LibraryPage: React.FC = () => {
               >
                 {libraryStats.readingGoal ? 'Edit' : 'Set Goal'}
               </button>
+              <button
+                onClick={() => setActiveTab('wishlist')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === 'wishlist'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Wishlist ({libraryStats.wishlistCount})
+              </button>
             </div>
             {libraryStats.readingGoal ? (
               <div>

@@ -83,7 +83,7 @@ function AppContent() {
                 </div>
               </div>
               <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-700 bg-clip-text text-transparent mb-6">
-                About Readpop
+                About NextRead
               </h1>
               <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
                 Discover your next favorite book with the power of AI-driven recommendations. 

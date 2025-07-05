@@ -395,12 +395,6 @@ function AppContent() {
             </div>
           </div>
 
-          {/* Trending Books Section - Moved below search */}
-          <div className="mb-8">
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 border border-gray-200">
-              <BookCarousel onGenreClick={handleSearch} />
-            </div>
-          </div>
 
           {/* Results Section - Bento Style */}
           <div className="mb-8">
@@ -428,8 +422,10 @@ function AppContent() {
               </div>
             )}
           </div>
+
+          {/* Search Results */}
             {!isLoading && !error && hasSearched && results.length > 0 && (
-              <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
+              <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200 mb-8">
                 <div className="flex items-center justify-between mb-8">
                   <div>
                     <h3 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
@@ -450,7 +446,7 @@ function AppContent() {
             )}
 
             {!isLoading && !error && hasSearched && results.length === 0 && (
-              <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-12 border border-gray-200">
+              <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-12 border border-gray-200 mb-8">
                 <EmptyState 
                   type="no-results" 
                   query={currentQuery}
@@ -460,13 +456,20 @@ function AppContent() {
             )}
 
             {!hasSearched && !isLoading && (
-              <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-12 border border-gray-200">
+              <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-8 sm:p-12 border border-gray-200 mb-8">
                 <EmptyState 
                   type="initial"
                   onTryExample={handleTryExample}
                 />
               </div>
             )}
+
+          {/* Trending Books Section - Now below search results */}
+          <div className="mb-8">
+            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 border border-gray-200">
+              <BookCarousel onGenreClick={handleSearch} />
+            </div>
+          </div>
         </main>
       )}
 

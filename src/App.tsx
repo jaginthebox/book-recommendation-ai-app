@@ -6,6 +6,7 @@ import SearchBar from './components/SearchInterface/SearchBar';
 import BookGrid from './components/BookResults/BookGrid';
 import LoadingSpinner from './components/Common/LoadingSpinner';
 import EmptyState from './components/Common/EmptyState';
+import BookCarousel from './components/Common/BookCarousel';
 import { useBookSearch } from './hooks/useBookSearch';
 import { Book } from './types';
 import { BookOpen, Sparkles, Search, Heart } from 'lucide-react';
@@ -125,6 +126,55 @@ function App() {
           </div>
         ) : (
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Hero Section with Background */}
+          <div className="relative mb-16 -mx-4 sm:-mx-6 lg:-mx-8">
+            {/* Background Image Section */}
+            <div className="relative h-96 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent"></div>
+                <div className="grid grid-cols-8 gap-4 h-full p-8 transform rotate-12 scale-150">
+                  {Array.from({ length: 32 }).map((_, i) => (
+                    <div key={i} className="bg-white bg-opacity-10 rounded-lg animate-pulse" style={{ animationDelay: `${i * 0.1}s` }}></div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Floating Book Images */}
+              <div className="absolute inset-0">
+                <div className="absolute top-12 left-12 w-16 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg shadow-2xl transform rotate-12 animate-float"></div>
+                <div className="absolute top-20 right-20 w-12 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg shadow-2xl transform -rotate-6 animate-float" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute bottom-16 left-20 w-14 h-18 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg shadow-2xl transform rotate-6 animate-float" style={{ animationDelay: '2s' }}></div>
+                <div className="absolute bottom-20 right-16 w-10 h-14 bg-gradient-to-br from-pink-400 to-rose-500 rounded-lg shadow-2xl transform -rotate-12 animate-float" style={{ animationDelay: '0.5s' }}></div>
+                <div className="absolute top-32 left-1/3 w-8 h-12 bg-gradient-to-br from-purple-400 to-violet-500 rounded-lg shadow-2xl transform rotate-3 animate-float" style={{ animationDelay: '1.5s' }}></div>
+                <div className="absolute top-16 right-1/3 w-12 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg shadow-2xl transform -rotate-9 animate-float" style={{ animationDelay: '0.8s' }}></div>
+              </div>
+              
+              {/* Content Overlay */}
+              <div className="relative z-10 h-full flex items-center justify-center text-center px-4">
+                <div className="max-w-4xl mx-auto">
+                  <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+                    Discover Your Next
+                    <span className="block bg-gradient-to-r from-yellow-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                      Great Read
+                    </span>
+                  </h1>
+                  <p className="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto leading-relaxed">
+                    Let our AI understand your mood and preferences to find the perfect books that match your current vibe
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button className="px-8 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-bold rounded-2xl hover:from-yellow-500 hover:to-orange-600 transition-all duration-200 shadow-2xl hover:shadow-3xl transform hover:-translate-y-1">
+                      Start Discovering
+                    </button>
+                    <button className="px-8 py-4 bg-white bg-opacity-20 text-white font-semibold rounded-2xl hover:bg-opacity-30 transition-all duration-200 backdrop-blur-sm border border-white border-opacity-30">
+                      Browse Trending
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Search Section */}
           <div className="mb-12">
             <div className="text-center mb-8">
@@ -202,6 +252,13 @@ function App() {
             )}
           </div>
         </main>
+        )}
+
+        {/* Book Carousel Section - Only show on home page */}
+        {currentPage === 'home' && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <BookCarousel />
+          </section>
         )}
 
         {/* Footer */}

@@ -409,7 +409,7 @@ export const useLibrary = () => {
       readBooks,
       currentlyReading,
       wantToRead,
-      wishlistCount
+      wishlistCount,
       readingSessions,
       readingGoal: currentYearGoal
     };

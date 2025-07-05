@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Calendar, BookOpen, ExternalLink, Sparkles, Heart, HeartOff, Plus } from 'lucide-react';
+import { Star, Calendar, BookOpen, ExternalLink, Sparkles, Heart, Plus, Bookmark } from 'lucide-react';
 import { Book } from '../../types';
 import { useLibrary } from '../../hooks/useLibrary';
 import { useAuth } from '../../hooks/useAuth';
@@ -12,10 +12,12 @@ interface BookCardProps {
 
 const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
   const { user } = useAuth();
-  const { saveBook, isBookSaved } = useLibrary();
+  const { saveBook, addToWishlist, isBookSaved, isInWishlist } = useLibrary();
   const [imageError, setImageError] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isInWishlistState, setIsInWishlistState] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   
   // Safely handle categories that might be undefined or null
@@ -24,9 +26,15 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
   // Check if book is saved when component mounts
   React.useEffect(() => {
     if (user) {
-      isBookSaved(book.id).then(setIsSaved);
+      Promise.all([
+        isBookSaved(book.id),
+        isInWishlist(book.id)
+      ]).then(([saved, wishlist]) => {
+        setIsSaved(saved);
+        setIsInWishlistState(wishlist);
+      });
     }
-  }, [user, book.id, isBookSaved]);
+  }, [user, book.id, isBookSaved, isInWishlist]);
 
   const handleImageError = () => {
     setImageError(true);
@@ -52,6 +60,22 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
     }
   };
 
+  const handleAddToWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user || isAddingToWishlist) return;
+
+    setIsAddingToWishlist(true);
+    try {
+      if (!isInWishlistState) {
+        const success = await addToWishlist(book, 3); // Default medium priority
+        if (success) {
+          setIsInWishlistState(true);
+        }
+      }
+    } finally {
+      setIsAddingToWishlist(false);
+    }
+  };
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowDetailsModal(true);
@@ -116,24 +140,47 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
                   </div>
                 )}
                 {user && (
-                  <button
-                    onClick={handleSaveBook}
-                    disabled={isSaving}
-                    className={`p-2 rounded-full transition-colors ${
-                      isSaved
-                        ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                        : 'bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-600'
-                    } disabled:opacity-50`}
-                    title={isSaved ? 'Remove from library' : 'Save to library'}
-                  >
-                    {isSaving ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    ) : isSaved ? (
-                      <Heart className="w-4 h-4 fill-current" />
-                    ) : (
-                      <Plus className="w-4 h-4" />
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={handleSaveBook}
+                      disabled={isSaving}
+                      className={`p-2 rounded-full transition-colors ${
+                        isSaved
+                          ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                          : 'bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-600'
+                      } disabled:opacity-50`}
+                      title={isSaved ? 'In library' : 'Add to library'}
+                    >
+                      {isSaving ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : isSaved ? (
+                        <BookOpen className="w-4 h-4" />
+                      ) : (
+                        <Plus className="w-4 h-4" />
+                      )}
+                    </button>
+                    
+                    {!isSaved && (
+                      <button
+                        onClick={handleAddToWishlist}
+                        disabled={isAddingToWishlist}
+                        className={`p-2 rounded-full transition-colors ${
+                          isInWishlistState
+                            ? 'bg-pink-100 text-pink-600 hover:bg-pink-200'
+                            : 'bg-gray-100 text-gray-600 hover:bg-pink-100 hover:text-pink-600'
+                        } disabled:opacity-50`}
+                        title={isInWishlistState ? 'In wishlist' : 'Add to wishlist'}
+                      >
+                        {isAddingToWishlist ? (
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : isInWishlistState ? (
+                          <Heart className="w-4 h-4 fill-current" />
+                        ) : (
+                          <Bookmark className="w-4 h-4" />
+                        )}
+                      </button>
                     )}
-                  </button>
+                  </div>
                 )}
                 </div>
             </div>
@@ -208,15 +255,25 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
             >
               View Details
             </button>
-            {user && !isSaved && (
-              <button
-                onClick={handleSaveBook}
-                disabled={isSaving}
-                className="flex items-center space-x-1 text-sm text-gray-600 hover:text-indigo-600 font-medium transition-colors duration-200 disabled:opacity-50"
-              >
-                <Plus className="w-3 h-3" />
-                <span>Save</span>
-              </button>
+            {user && !isSaved && !isInWishlistState && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleSaveBook}
+                  disabled={isSaving}
+                  className="flex items-center space-x-1 text-sm text-gray-600 hover:text-indigo-600 font-medium transition-colors duration-200 disabled:opacity-50"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Library</span>
+                </button>
+                <button
+                  onClick={handleAddToWishlist}
+                  disabled={isAddingToWishlist}
+                  className="flex items-center space-x-1 text-sm text-gray-600 hover:text-pink-600 font-medium transition-colors duration-200 disabled:opacity-50"
+                >
+                  <Bookmark className="w-3 h-3" />
+                  <span>Wishlist</span>
+                </button>
+              </div>
             )}
           </div>
           

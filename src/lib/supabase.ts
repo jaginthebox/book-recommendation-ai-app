@@ -61,12 +61,64 @@ export interface SavedBook {
     isbn?: string;
   };
   is_read: boolean;
+  status: 'want_to_read' | 'currently_reading' | 'read';
   reading_progress: number;
   user_rating?: number;
   notes?: string;
   tags: string[];
+  priority: number;
   saved_at: string;
   read_at?: string;
+  date_started?: string;
+  updated_at: string;
+}
+
+export interface WishlistItem {
+  id: string;
+  user_id: string;
+  book_id: string;
+  book_data: {
+    id: string;
+    title: string;
+    authors: string[];
+    description: string;
+    coverImage: string;
+    publishedDate: string;
+    pageCount?: number;
+    categories: string[];
+    rating?: number;
+    ratingCount?: number;
+    googleBooksUrl: string;
+    isbn?: string;
+  };
+  user_rating?: number;
+  comments?: string;
+  priority: number;
+  tags: string[];
+  added_at: string;
+  updated_at: string;
+}
+
+export interface BookCollection {
+  id: string;
+  user_id: string;
+  name: string;
+  description?: string;
+  is_public: boolean;
+  book_ids: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReadingGoal {
+  id: string;
+  user_id: string;
+  year: number;
+  target_books: number;
+  current_books: number;
+  target_pages?: number;
+  current_pages: number;
+  created_at: string;
   updated_at: string;
 }
 
@@ -267,7 +319,9 @@ export class DatabaseService {
   static async saveBookToLibrary(
     userId: string,
     book: any,
-    tags: string[] = []
+    tags: string[] = [],
+    status: 'want_to_read' | 'currently_reading' | 'read' = 'want_to_read',
+    priority: number = 3
   ): Promise<SavedBook | null> {
     try {
       const { data, error } = await supabase
@@ -289,7 +343,12 @@ export class DatabaseService {
             googleBooksUrl: book.googleBooksUrl,
             isbn: book.isbn
           },
-          tags
+          tags,
+          status,
+          priority,
+          is_read: status === 'read',
+          reading_progress: status === 'read' ? 100 : 0,
+          date_started: status === 'currently_reading' ? new Date().toISOString() : null
         })
         .select()
         .single();
@@ -306,9 +365,11 @@ export class DatabaseService {
     userId: string,
     filters?: {
       isRead?: boolean;
+      status?: 'want_to_read' | 'currently_reading' | 'read';
       hasNotes?: boolean;
       tags?: string[];
       search?: string;
+      priority?: number;
     }
   ): Promise<SavedBook[]> {
     try {
@@ -323,12 +384,20 @@ export class DatabaseService {
         query = query.eq('is_read', filters.isRead);
       }
 
+      if (filters?.status) {
+        query = query.eq('status', filters.status);
+      }
+
       if (filters?.hasNotes) {
         query = query.not('notes', 'is', null);
       }
 
       if (filters?.tags && filters.tags.length > 0) {
         query = query.overlaps('tags', filters.tags);
+      }
+
+      if (filters?.priority) {
+        query = query.eq('priority', filters.priority);
       }
 
       const { data, error } = await query;
@@ -359,7 +428,7 @@ export class DatabaseService {
   static async updateSavedBook(
     userId: string,
     bookId: string,
-    updates: Partial<Pick<SavedBook, 'is_read' | 'reading_progress' | 'user_rating' | 'notes' | 'tags'>>
+    updates: Partial<Pick<SavedBook, 'is_read' | 'status' | 'reading_progress' | 'user_rating' | 'notes' | 'tags' | 'priority'>>
   ): Promise<SavedBook | null> {
     try {
       const { data, error } = await supabase
@@ -467,18 +536,254 @@ export class DatabaseService {
     }
   }
 
+  // Wishlist Management Methods
+  static async addToWishlist(
+    userId: string,
+    book: any,
+    priority: number = 3,
+    tags: string[] = []
+  ): Promise<WishlistItem | null> {
+    try {
+      const { data, error } = await supabase
+        .from('wishlist')
+        .insert({
+          user_id: userId,
+          book_id: book.id,
+          book_data: {
+            id: book.id,
+            title: book.title,
+            authors: book.authors,
+            description: book.description,
+            coverImage: book.coverImage,
+            publishedDate: book.publishedDate,
+            pageCount: book.pageCount,
+            categories: book.categories,
+            rating: book.rating,
+            ratingCount: book.ratingCount,
+            googleBooksUrl: book.googleBooksUrl,
+            isbn: book.isbn
+          },
+          priority,
+          tags
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      return null;
+    }
+  }
+
+  static async getUserWishlist(
+    userId: string,
+    filters?: {
+      priority?: number;
+      tags?: string[];
+      search?: string;
+    }
+  ): Promise<WishlistItem[]> {
+    try {
+      let query = supabase
+        .from('wishlist')
+        .select('*')
+        .eq('user_id', userId)
+        .order('priority', { ascending: true })
+        .order('added_at', { ascending: false });
+
+      if (filters?.priority) {
+        query = query.eq('priority', filters.priority);
+      }
+
+      if (filters?.tags && filters.tags.length > 0) {
+        query = query.overlaps('tags', filters.tags);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      
+      let results = data || [];
+
+      if (filters?.search) {
+        const searchTerm = filters.search.toLowerCase();
+        results = results.filter(item => 
+          item.book_data.title.toLowerCase().includes(searchTerm) ||
+          item.book_data.authors.some(author => 
+            author.toLowerCase().includes(searchTerm)
+          ) ||
+          item.comments?.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+      return [];
+    }
+  }
+
+  static async updateWishlistItem(
+    userId: string,
+    bookId: string,
+    updates: Partial<Pick<WishlistItem, 'user_rating' | 'comments' | 'priority' | 'tags'>>
+  ): Promise<WishlistItem | null> {
+    try {
+      const { data, error } = await supabase
+        .from('wishlist')
+        .update(updates)
+        .eq('user_id', userId)
+        .eq('book_id', bookId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating wishlist item:', error);
+      return null;
+    }
+  }
+
+  static async removeFromWishlist(userId: string, bookId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('wishlist')
+        .delete()
+        .eq('user_id', userId)
+        .eq('book_id', bookId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+      return false;
+    }
+  }
+
+  static async moveFromWishlistToLibrary(
+    userId: string,
+    bookId: string,
+    status: 'want_to_read' | 'currently_reading' | 'read' = 'want_to_read'
+  ): Promise<boolean> {
+    try {
+      // Get wishlist item
+      const { data: wishlistItem, error: fetchError } = await supabase
+        .from('wishlist')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('book_id', bookId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Add to library
+      const savedBook = await this.saveBookToLibrary(
+        userId,
+        wishlistItem.book_data,
+        wishlistItem.tags,
+        status,
+        wishlistItem.priority
+      );
+
+      if (!savedBook) return false;
+
+      // Remove from wishlist
+      await this.removeFromWishlist(userId, bookId);
+
+      return true;
+    } catch (error) {
+      console.error('Error moving from wishlist to library:', error);
+      return false;
+    }
+  }
+
+  static async isInWishlist(userId: string, bookId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('wishlist')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('book_id', bookId)
+        .limit(1);
+
+      if (error) throw error;
+      return (data && data.length > 0);
+    } catch (error) {
+      console.error('Error checking wishlist:', error);
+      return false;
+    }
+  }
+
+  // Reading Goals Methods
+  static async getUserReadingGoal(userId: string, year?: number): Promise<ReadingGoal | null> {
+    try {
+      const targetYear = year || new Date().getFullYear();
+      const { data, error } = await supabase
+        .from('reading_goals')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('year', targetYear)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
+      return data;
+    } catch (error) {
+      console.error('Error fetching reading goal:', error);
+      return null;
+    }
+  }
+
+  static async setReadingGoal(
+    userId: string,
+    year: number,
+    targetBooks: number,
+    targetPages?: number
+  ): Promise<ReadingGoal | null> {
+    try {
+      const { data, error } = await supabase
+        .from('reading_goals')
+        .upsert({
+          user_id: userId,
+          year,
+          target_books: targetBooks,
+          target_pages: targetPages
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error setting reading goal:', error);
+      return null;
+    }
+  }
+
   // Library Analytics
   static async getLibraryStats(userId: string) {
     try {
-      const { data: savedBooks, error } = await supabase
+      const [savedBooksResult, wishlistResult, readingGoalResult] = await Promise.all([
+        supabase
         .from('saved_books')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', userId),
+        supabase
+        .from('wishlist')
+        .select('*')
+        .eq('user_id', userId),
+        this.getUserReadingGoal(userId)
+      ]);
 
-      if (error) throw error;
+      if (savedBooksResult.error) throw savedBooksResult.error;
+      if (wishlistResult.error) throw wishlistResult.error;
 
-      const books = savedBooks || [];
+      const books = savedBooksResult.data || [];
+      const wishlistItems = wishlistResult.data || [];
       const readBooks = books.filter(book => book.is_read);
+      const currentlyReading = books.filter(book => book.status === 'currently_reading');
       const booksWithNotes = books.filter(book => book.notes);
       const booksWithRatings = books.filter(book => book.user_rating);
       
@@ -499,23 +804,56 @@ export class DatabaseService {
         .slice(0, 5)
         .map(([genre, count]) => ({ genre, count }));
 
+      // Calculate reading streak (consecutive days with reading activity)
+      const readingSessions = await this.getReadingSessions(userId, undefined, 30);
+      const uniqueReadingDays = new Set(
+        readingSessions.map(session => 
+          new Date(session.session_date).toDateString()
+        )
+      );
+      
+      let currentStreak = 0;
+      const today = new Date();
+      for (let i = 0; i < 30; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(today.getDate() - i);
+        if (uniqueReadingDays.has(checkDate.toDateString())) {
+          currentStreak++;
+        } else if (i > 0) { // Allow for today to not have reading yet
+          break;
+        }
+      }
       return {
         totalBooks: books.length,
         readBooks: readBooks.length,
+        currentlyReading: currentlyReading.length,
+        wantToRead: books.filter(book => book.status === 'want_to_read').length,
         booksWithNotes: booksWithNotes.length,
+        wishlistCount: wishlistItems.length,
         averageRating: Math.round(averageRating * 10) / 10,
         topGenres,
-        readingProgress: books.length > 0 ? Math.round((readBooks.length / books.length) * 100) : 0
+        readingProgress: books.length > 0 ? Math.round((readBooks.length / books.length) * 100) : 0,
+        readingGoal: readingGoalResult,
+        readingStreak: currentStreak,
+        totalPages: books.reduce((sum, book) => sum + (book.book_data.pageCount || 0), 0),
+        pagesRead: readBooks.reduce((sum, book) => sum + (book.book_data.pageCount || 0), 0)
       };
     } catch (error) {
       console.error('Error getting library stats:', error);
       return {
         totalBooks: 0,
         readBooks: 0,
+        currentlyReading: 0,
+        wantToRead: 0,
         booksWithNotes: 0,
+        wishlistCount: 0,
         averageRating: 0,
         topGenres: [],
-        readingProgress: 0
+        readingProgress: 0,
+        readingGoal: null,
+        readingStreak: 0,
+        totalPages: 0,
+        pagesRead: 0
       };
     }
   }

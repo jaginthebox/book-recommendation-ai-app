@@ -131,7 +131,7 @@ export const useAuthProvider = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.protocol}//${window.location.host}`,
+          emailRedirectTo: undefined, // Skip email confirmation
           data: {
             name: name,
             full_name: name,
@@ -144,22 +144,16 @@ export const useAuthProvider = () => {
         if (error.message.includes('User already registered')) {
           throw new Error('User already registered');
         }
-        if (error.message.includes('Email not confirmed')) {
-          throw new Error('Please check your email and click the confirmation link to complete registration');
-        }
         throw error;
       }
 
-      if (data.user && data.session) {
-        // User is immediately signed in (email confirmation disabled)
+      if (data.user) {
+        // User is created and should be immediately signed in
         setUser({
           id: data.user.id,
           email: data.user.email || '',
           name: name
         });
-      } else if (data.user && !data.session) {
-        // User created but needs email confirmation
-        throw new Error('Registration successful! Please check your email and click the confirmation link to complete your account setup');
       }
     } finally {
       setIsLoading(false);

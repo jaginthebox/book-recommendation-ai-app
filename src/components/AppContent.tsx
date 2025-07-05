@@ -7,6 +7,7 @@ import LoadingSpinner from './Common/LoadingSpinner';
 import EmptyState from './Common/EmptyState';
 import RecommendationsPage from './Recommendations/RecommendationsPage';
 import BookCarousel from './Common/BookCarousel';
+import MoodSelector, { Mood } from './SearchInterface/MoodSelector';
 import { useBookSearch } from '../hooks/useBookSearch';
 import { Book } from '../types';
 import { BookOpen, Sparkles, Search, Heart, Target, TrendingUp, Award, Users, Zap, Star, Clock, Globe } from 'lucide-react';
@@ -15,6 +16,7 @@ function AppContent() {
   const { isLoading, results, error, totalResults, processingTime, hasSearched, searchBooks } = useBookSearch();
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'recommendations' | 'about'>('home');
+  const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
 
   const handleSearch = async (query: string) => {
     setCurrentQuery(query);
@@ -218,76 +220,78 @@ function AppContent() {
         </div>
       ) : (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Section - Bento Style */}
+        {/* Engaging Banner - Moved Higher */}
         <div className="mb-8">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
-            {/* Engaging Banner */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8 sm:p-12 mb-8 border border-slate-200">
-              {/* Background Pattern */}
-              <div className="absolute inset-0 opacity-5">
-                <div className="absolute top-4 left-4 w-8 h-10 bg-slate-400 rounded transform rotate-12"></div>
-                <div className="absolute top-8 right-12 w-6 h-8 bg-slate-400 rounded transform -rotate-6"></div>
-                <div className="absolute bottom-6 left-16 w-7 h-9 bg-slate-400 rounded transform rotate-45"></div>
-                <div className="absolute bottom-4 right-6 w-5 h-7 bg-slate-400 rounded transform -rotate-12"></div>
-                <div className="absolute top-1/2 left-1/4 w-4 h-6 bg-slate-400 rounded transform rotate-30"></div>
-                <div className="absolute top-1/3 right-1/3 w-6 h-8 bg-slate-400 rounded transform -rotate-45"></div>
-              </div>
-              
-              <div className="relative z-10 text-center">
-                <div className="flex items-center justify-center space-x-4 mb-6">
-                  {/* Reader silhouettes */}
-                  <div className="hidden sm:flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center">
-                      <div className="w-4 h-4 bg-white rounded-full opacity-80"></div>
-                    </div>
-                    <div className="w-6 h-6 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full flex items-center justify-center">
-                      <div className="w-3 h-3 bg-white rounded-full opacity-80"></div>
-                    </div>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8 sm:p-12 border border-slate-200">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute top-4 left-4 w-8 h-10 bg-slate-400 rounded transform rotate-12"></div>
+              <div className="absolute top-8 right-12 w-6 h-8 bg-slate-400 rounded transform -rotate-6"></div>
+              <div className="absolute bottom-6 left-16 w-7 h-9 bg-slate-400 rounded transform rotate-45"></div>
+              <div className="absolute bottom-4 right-6 w-5 h-7 bg-slate-400 rounded transform -rotate-12"></div>
+              <div className="absolute top-1/2 left-1/4 w-4 h-6 bg-slate-400 rounded transform rotate-30"></div>
+              <div className="absolute top-1/3 right-1/3 w-6 h-8 bg-slate-400 rounded transform -rotate-45"></div>
+            </div>
+            
+            <div className="relative z-10 text-center">
+              <div className="flex items-center justify-center space-x-4 mb-6">
+                {/* Reader silhouettes */}
+                <div className="hidden sm:flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center">
+                    <div className="w-4 h-4 bg-white rounded-full opacity-80"></div>
                   </div>
-                  
-                  {/* Central book icon */}
-                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-                    <BookOpen className="w-8 h-8 text-white" />
-                  </div>
-                  
-                  {/* More reader silhouettes */}
-                  <div className="hidden sm:flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center">
-                      <div className="w-3 h-3 bg-white rounded-full opacity-80"></div>
-                    </div>
-                    <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center">
-                      <div className="w-4 h-4 bg-white rounded-full opacity-80"></div>
-                    </div>
+                  <div className="w-6 h-6 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full flex items-center justify-center">
+                    <div className="w-3 h-3 bg-white rounded-full opacity-80"></div>
                   </div>
                 </div>
                 
-                <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-4">
-                  Discover Your Perfect
-                  <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent"> Literary Journey</span>
-                </h2>
+                {/* Central book icon */}
+                <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <BookOpen className="w-8 h-8 text-white" />
+                </div>
                 
-                <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-6 leading-relaxed">
-                  From timeless classics to contemporary masterpieces, from thrilling adventures to profound insights—
-                  <span className="font-semibold text-slate-700"> find books that speak to your soul</span> with our AI-powered recommendations.
-                </p>
-                
-                <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-500">
-                  <div className="flex items-center space-x-2 bg-white bg-opacity-60 px-3 py-2 rounded-full">
-                    <Sparkles className="w-4 h-4 text-indigo-500" />
-                    <span>Personalized Recommendations</span>
+                {/* More reader silhouettes */}
+                <div className="hidden sm:flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center">
+                    <div className="w-3 h-3 bg-white rounded-full opacity-80"></div>
                   </div>
-                  <div className="flex items-center space-x-2 bg-white bg-opacity-60 px-3 py-2 rounded-full">
-                    <Heart className="w-4 h-4 text-pink-500" />
-                    <span>Curated Collections</span>
+                  <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center">
+                    <div className="w-4 h-4 bg-white rounded-full opacity-80"></div>
                   </div>
-                  <div className="flex items-center space-x-2 bg-white bg-opacity-60 px-3 py-2 rounded-full">
-                    <TrendingUp className="w-4 h-4 text-emerald-500" />
-                    <span>Trending Discoveries</span>
-                  </div>
+                </div>
+              </div>
+              
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-4">
+                Discover Your Perfect
+                <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent"> Literary Journey</span>
+              </h2>
+              
+              <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-6 leading-relaxed">
+                From timeless classics to contemporary masterpieces, from thrilling adventures to profound insights—
+                <span className="font-semibold text-slate-700"> find books that speak to your soul</span> with our AI-powered recommendations.
+              </p>
+              
+              <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-500">
+                <div className="flex items-center space-x-2 bg-white bg-opacity-60 px-3 py-2 rounded-full">
+                  <Sparkles className="w-4 h-4 text-indigo-500" />
+                  <span>Personalized Recommendations</span>
+                </div>
+                <div className="flex items-center space-x-2 bg-white bg-opacity-60 px-3 py-2 rounded-full">
+                  <Heart className="w-4 h-4 text-pink-500" />
+                  <span>Curated Collections</span>
+                </div>
+                <div className="flex items-center space-x-2 bg-white bg-opacity-60 px-3 py-2 rounded-full">
+                  <TrendingUp className="w-4 h-4 text-emerald-500" />
+                  <span>Trending Discoveries</span>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
+        {/* Search Section - Bento Style */}
+        <div className="mb-8">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-200">
             {/* Search Header */}
             <div className="text-center mb-6">
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
@@ -302,6 +306,14 @@ function AppContent() {
               onSearch={handleSearch} 
               isLoading={isLoading}
             />
+            
+            {/* Mood Selector */}
+            <div className="mt-8">
+              <MoodSelector
+                selectedMood={selectedMood}
+                onMoodSelect={setSelectedMood}
+              />
+            </div>
           </div>
         </div>
 

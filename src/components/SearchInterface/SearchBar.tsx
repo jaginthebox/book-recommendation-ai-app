@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Sparkles, Loader2 } from 'lucide-react';
-import MoodSelector, { Mood } from './MoodSelector';
+import { Mood } from './MoodSelector';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -14,11 +14,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = "Tell us what you're looking for..." 
 }) => {
   const [query, setQuery] = useState('');
+  const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim() && !isLoading) {
+    if ((query.trim() || selectedMood) && !isLoading) {
       let searchQuery = query.trim();
+      
+      // Enhance query with mood if selected
+      if (selectedMood) {
+        searchQuery = searchQuery 
+          ? `${searchQuery} ${selectedMood.searchModifier}`
+          : `books that are ${selectedMood.searchModifier}`;
+      }
+      
       onSearch(searchQuery);
     }
   };
@@ -58,7 +67,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           
           <button
             type="submit"
-            disabled={!query.trim() || isLoading}
+            disabled={(!query.trim() && !selectedMood) || isLoading}
             className="absolute inset-y-0 right-0 pr-4 flex items-center
                      disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -80,6 +89,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
               key={index}
               onClick={() => {
                 setQuery(example);
+                setSelectedMood(null);
               }}
               disabled={isLoading}
               className="px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 

@@ -65,7 +65,6 @@ const LibraryPage: React.FC = () => {
   // Filter books based on active tab and filters
   const filteredBooks = savedBooks.filter(book => {
     // Tab filtering
-    if (activeTab === 'want_to_read' && book.status !== 'want_to_read') return false;
     if (activeTab === 'currently_reading' && book.status !== 'currently_reading') return false;
     if (activeTab === 'read' && !book.is_read) return false;
     if (activeTab === 'notes' && !book.notes) return false;
@@ -446,14 +445,14 @@ const LibraryPage: React.FC = () => {
                   All Books ({libraryStats.totalBooks})
                 </button>
                 <button
-                  onClick={() => setActiveTab('reading')}
+                  onClick={() => setActiveTab('currently_reading')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeTab === 'reading'
+                    activeTab === 'currently_reading'
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Currently Reading ({libraryStats.totalBooks - libraryStats.readBooks})
+                  Currently Reading ({libraryStats.currentlyReading})
                 </button>
                 <button
                   onClick={() => setActiveTab('read')}
@@ -731,14 +730,12 @@ const LibraryPage: React.FC = () => {
                 <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                   {activeTab === 'all' && 'No books in your library yet'}
-                  {activeTab === 'want_to_read' && 'No books in your want to read list'}
                   {activeTab === 'currently_reading' && 'No books currently being read'}
                   {activeTab === 'read' && 'No books marked as read'}
                   {activeTab === 'notes' && 'No books with notes'}
                 </h3>
                 <p className="text-gray-600 mb-6">
                   {activeTab === 'all' && 'Start building your library by saving books you want to read.'}
-                  {activeTab === 'want_to_read' && 'Add some books to your want to read list!'}
                   {activeTab === 'currently_reading' && 'Start reading some books from your library!'}
                   {activeTab === 'read' && 'Mark books as read to track your reading progress.'}
                   {activeTab === 'notes' && 'Add notes to your books to remember your thoughts and insights.'}

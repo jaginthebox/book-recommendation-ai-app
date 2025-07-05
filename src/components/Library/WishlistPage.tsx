@@ -137,7 +137,10 @@ const WishlistPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Sign in to access your wishlist</h2>
           <p className="text-gray-600 mb-6">Create an account to save books to your wishlist and rate them.</p>
-          <button className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-pink-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+          <button 
+            onClick={() => window.location.hash = ''}
+            className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-pink-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
             Get Started
           </button>
         </div>

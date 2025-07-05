@@ -199,26 +199,13 @@ const RecommendationsPage: React.FC = () => {
               <p className="text-xl text-white text-opacity-90 max-w-2xl mx-auto mb-8">
                 Get personalized recommendations based on your reading history and preferences
               </p>
-              <button className="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+              <button 
+                onClick={() => window.location.hash = ''}
+                className="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              >
                 Sign Up for Personalized Recommendations
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Sample Recommendations */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Sample Recommendations</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Here's a preview of the personalized recommendations you'll get when you create an account
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {recommendations[0].books.slice(0, 2).map((book) => (
-              <BookCard key={book.id} book={book} />
-            ))}
           </div>
         </div>
       </div>

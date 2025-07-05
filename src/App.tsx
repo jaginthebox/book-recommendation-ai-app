@@ -33,6 +33,7 @@ function App() {
   React.useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
+      console.log('Hash changed to:', hash); // Debug log
       if (hash === '#library') {
         setCurrentPage('library');
       } else if (hash === '#recommendations') {

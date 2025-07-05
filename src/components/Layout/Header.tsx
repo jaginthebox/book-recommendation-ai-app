@@ -20,7 +20,12 @@ const Header: React.FC = () => {
   };
 
   const handleNavigation = (hash: string) => {
-    window.location.hash = hash;
+    if (hash === '') {
+      window.location.hash = '';
+      window.location.href = window.location.pathname; // Remove hash completely
+    } else {
+      window.location.hash = hash;
+    }
     setShowMobileMenu(false);
   };
 

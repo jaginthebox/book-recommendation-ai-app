@@ -23,7 +23,7 @@ import { useAuth } from './useAuth.tsx';
 import { Book } from '../../types';
 import BookCard from '../components/BookResults/BookCard';
 import MoodSelector, { Mood } from '../components/SearchInterface/MoodSelector';
-import { useRecommendations } from '../../hooks/useRecommendations';
+import { useRecommendations } from './useRecommendations';
 import { useSearchHistory } from '../../hooks/useSearchHistory';
 
 // Static curated recommendations for non-authenticated users and fallback

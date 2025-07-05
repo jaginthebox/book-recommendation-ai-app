@@ -3,6 +3,7 @@ import { Star, Calendar, BookOpen, ExternalLink, Sparkles, Heart, HeartOff, Plus
 import { Book } from '../../types';
 import { useLibrary } from '../../hooks/useLibrary';
 import { useAuth } from '../../hooks/useAuth';
+import BookDetailsModal from './BookDetailsModal';
 
 interface BookCardProps {
   book: Book;
@@ -15,6 +16,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
   const [imageError, setImageError] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   
   // Safely handle categories that might be undefined or null
   const categories = book.categories || [];
@@ -48,6 +50,11 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDetailsModal(true);
   };
 
   const formatAuthors = (authors: string[]) => {
@@ -194,8 +201,11 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
         {/* Action Buttons */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
           <div className="flex items-center space-x-2">
-            <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium 
-                             transition-colors duration-200">
+            <button 
+              onClick={handleViewDetails}
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium 
+                         transition-colors duration-200"
+            >
               View Details
             </button>
             {user && !isSaved && (
@@ -223,6 +233,14 @@ const BookCard: React.FC<BookCardProps> = ({ book, onClick }) => {
           </a>
         </div>
       </div>
+      
+      {/* Book Details Modal */}
+      {showDetailsModal && (
+        <BookDetailsModal
+          book={book}
+          onClose={() => setShowDetailsModal(false)}
+        />
+      )}
     </div>
   );
 };

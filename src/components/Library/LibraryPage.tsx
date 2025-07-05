@@ -23,6 +23,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useLibrary } from '../../hooks/useLibrary';
 import { SavedBook } from '../../lib/supabase';
 import NotesModal from './NotesModal';
+import BookDetailsModal from '../BookResults/BookDetailsModal';
 import LoadingSpinner from '../Common/LoadingSpinner';
 
 const LibraryPage: React.FC = () => {
@@ -43,6 +44,8 @@ const LibraryPage: React.FC = () => {
   const [filterBy, setFilterBy] = useState<'all' | 'recent' | 'rated' | 'progress'>('all');
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState<SavedBook | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedBookForDetails, setSelectedBookForDetails] = useState<SavedBook | null>(null);
 
   // Filter books based on active tab and filters
   const filteredBooks = savedBooks.filter(book => {
@@ -88,6 +91,11 @@ const LibraryPage: React.FC = () => {
   const openNotesModal = (book: SavedBook) => {
     setSelectedBook(book);
     setShowNotesModal(true);
+  };
+
+  const openDetailsModal = (book: SavedBook) => {
+    setSelectedBookForDetails(book);
+    setShowDetailsModal(true);
   };
 
   const handleSaveNotes = async (bookId: string, notes: string, rating?: number) => {
@@ -460,6 +468,14 @@ const LibraryPage: React.FC = () => {
                         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                           <div className="flex items-center space-x-2">
                             <button
+                              onClick={() => openDetailsModal(savedBook)}
+                              className="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-xs font-medium transition-colors"
+                            >
+                              <BookOpen className="w-3 h-3" />
+                              <span>Details</span>
+                            </button>
+                            
+                            <button
                               onClick={() => handleToggleRead(savedBook.book_id)}
                               className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                                 savedBook.is_read
@@ -532,6 +548,27 @@ const LibraryPage: React.FC = () => {
           }}
           onClose={() => setShowNotesModal(false)}
           onSave={handleSaveNotes}
+        />
+      )}
+      
+      {/* Book Details Modal */}
+      {showDetailsModal && selectedBookForDetails && (
+        <BookDetailsModal
+          book={{
+            id: selectedBookForDetails.book_id,
+            title: selectedBookForDetails.book_data.title,
+            authors: selectedBookForDetails.book_data.authors,
+            description: selectedBookForDetails.book_data.description,
+            coverImage: selectedBookForDetails.book_data.coverImage,
+            publishedDate: selectedBookForDetails.book_data.publishedDate,
+            pageCount: selectedBookForDetails.book_data.pageCount,
+            categories: selectedBookForDetails.book_data.categories,
+            rating: selectedBookForDetails.book_data.rating,
+            ratingCount: selectedBookForDetails.book_data.ratingCount,
+            googleBooksUrl: selectedBookForDetails.book_data.googleBooksUrl,
+            isbn: selectedBookForDetails.book_data.isbn
+          }}
+          onClose={() => setShowDetailsModal(false)}
         />
       )}
     </div>

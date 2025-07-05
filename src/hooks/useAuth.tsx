@@ -131,7 +131,7 @@ export const useAuthProvider = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}`,
+          emailRedirectTo: `${window.location.protocol}//${window.location.host}`,
           data: {
             name: name,
             full_name: name,

@@ -464,12 +464,6 @@ function AppContent() {
               </div>
             )}
 
-          {/* Trending Books Section - Now below search results */}
-          <div className="mb-8">
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 border border-gray-200">
-              <BookCarousel onGenreClick={handleSearch} />
-            </div>
-          </div>
         </main>
       )}
 

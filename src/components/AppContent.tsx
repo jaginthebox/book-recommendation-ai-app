@@ -226,23 +226,19 @@ function AppContent() {
             <div 
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=600&fit=crop&crop=center&auto=enhance&sat=10&con=15')`,
+                backgroundImage: `url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=600&fit=crop&crop=center&auto=enhance&sat=20&con=25&sharp=10')`,
               }}
             ></div>
             
-            {/* Lighter overlay for better book visibility */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-800/40 via-indigo-800/30 to-blue-800/35"></div>
+            {/* Very light overlay to keep books visible */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900/25 via-indigo-900/20 to-blue-900/25"></div>
             
-            {/* Enhanced book pattern overlay - more visible */}
-            <div className="absolute inset-0 opacity-15">
-              <div className="absolute top-4 left-4 w-8 h-10 bg-white rounded-sm shadow-sm transform rotate-12"></div>
-              <div className="absolute top-8 right-12 w-6 h-8 bg-white rounded-sm shadow-sm transform -rotate-6"></div>
-              <div className="absolute bottom-6 left-16 w-7 h-9 bg-white rounded-sm shadow-sm transform rotate-45"></div>
-              <div className="absolute bottom-4 right-6 w-5 h-7 bg-white rounded-sm shadow-sm transform -rotate-12"></div>
-              <div className="absolute top-1/2 left-1/4 w-4 h-6 bg-white rounded-sm shadow-sm transform rotate-30"></div>
-              <div className="absolute top-1/3 right-1/3 w-6 h-8 bg-white rounded-sm shadow-sm transform -rotate-45"></div>
-              <div className="absolute top-1/4 left-1/2 w-5 h-7 bg-white rounded-sm shadow-sm transform -rotate-30"></div>
-              <div className="absolute bottom-1/3 right-1/4 w-7 h-9 bg-white rounded-sm shadow-sm transform rotate-60"></div>
+            {/* Subtle floating book accents - minimal to not interfere with real books */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-6 left-8 w-6 h-8 bg-amber-200 rounded-sm shadow-sm transform rotate-12"></div>
+              <div className="absolute top-12 right-16 w-5 h-7 bg-emerald-200 rounded-sm shadow-sm transform -rotate-8"></div>
+              <div className="absolute bottom-8 left-20 w-7 h-9 bg-rose-200 rounded-sm shadow-sm transform rotate-15"></div>
+              <div className="absolute bottom-6 right-12 w-4 h-6 bg-blue-200 rounded-sm shadow-sm transform -rotate-10"></div>
             </div>
             
             <div className="relative z-10 text-center text-white">

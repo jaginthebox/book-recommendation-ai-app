@@ -128,7 +128,7 @@ const Header: React.FC = () => {
                   <div className="hidden md:flex items-center space-x-3 bg-white bg-opacity-40 rounded-2xl px-5 py-3 backdrop-blur-sm border border-white border-opacity-50 shadow-sm">
                     <div className="text-right">
                       <p className="text-sm font-semibold text-blue-900">Welcome back!</p>
-                      <p className="text-xs text-blue-700">{user.email}</p>
+                      <p className="text-xs text-blue-700">{user.name}</p>
                     </div>
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white border-opacity-50">
                       <User className="w-5 h-5 text-white" />
@@ -213,7 +213,7 @@ const Header: React.FC = () => {
                         <User className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-blue-900">{user.email}</p>
+                        <p className="text-sm font-semibold text-blue-900">{user.name}</p>
                         <p className="text-xs text-blue-700">Signed in</p>
                       </div>
                     </div>

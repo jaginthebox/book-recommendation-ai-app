@@ -99,7 +99,9 @@ export const useAuthProvider = () => {
         options: {
           data: {
             name: name,
+            full_name: name,
           },
+          emailRedirectTo: undefined, // Disable email confirmation for development
         },
       });
 
@@ -112,6 +114,7 @@ export const useAuthProvider = () => {
       }
 
       if (data.user) {
+        // For development, we'll consider the user immediately confirmed
         setUser({
           id: data.user.id,
           email: data.user.email || '',
